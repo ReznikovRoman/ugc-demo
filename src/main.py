@@ -2,7 +2,7 @@ from aiohttp import web
 
 
 async def index(request):
-    return web.Response(text="Home page!")
+    return web.Response(text="Homepage")
 
 
 async def create_app() -> web.Application:

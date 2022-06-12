@@ -1,0 +1,7 @@
+-c requirements.txt
+
+pre-commit==2.19.0
+
+# Aiohttp extensions
+aiohttp-debugtoolbar==0.6.0
+aiohttp-devtools==1.0.post0

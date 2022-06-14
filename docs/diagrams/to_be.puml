@@ -57,7 +57,7 @@ frame NetflixUGC {
     component "ETL" as etl_ugc
     queue "Kafka" as kafka_ugc
     database "Redis Stack" as redis_stack_ugc
-    database "Clickhouse" as clickhouse_ugc
+    database "ClickHouse" as clickhouse_ugc
 
     api_ugc <-up-> traefik_ugc
     api_ugc <-down- redis_stack_ugc

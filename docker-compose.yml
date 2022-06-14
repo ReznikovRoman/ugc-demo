@@ -14,7 +14,7 @@ services:
       - .:/app
     command: >
       sh -c "cd /app/src
-      && gunicorn --reload --worker-class aiohttp.GunicornWebWorker --workers 2 --bind 0.0.0.0:$NUGC_SERVER_PORT main:create_app"
+      && gunicorn --reload --worker-class aiohttp.GunicornWebWorker --workers 2 --bind 0.0.0.0:$NUGC_SERVER_PORT ugc.main:create_app"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ugc_api.rule=Host(`api-ugc.localhost`,`traefik`)"

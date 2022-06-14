@@ -25,6 +25,40 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     DEBUG: bool = Field(False)
 
+    # Logging
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "formatters": {
+            "verbose": {
+                "format": "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",
+            },
+        },
+        "handlers": {
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
+        },
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        },
+        "loggers": {
+            "asyncio": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "ugc": {
+                "level": "DEBUG",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+        },
+    }
+
     class Config(EnvConfig):
         env_prefix = "NUGC_"
         case_sensitive = True

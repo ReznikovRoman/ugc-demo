@@ -72,7 +72,6 @@ frame NetflixUGC {
 
 base_client <-down-> nginx_admin: "Управление фильмами, актерами и жанрами"
 base_client <-down-> traefik_movies: "Основное АПИ онлайн-кинотеатра"
-api_movies <-down-> traefik_ugc: "Сохранение данных пользовательского контента"
 base_client <-down-> traefik_auth: "Работа с пользователями и управление ролями"
-base_client <-down-> traefik_ugc: "Получение данных о пользовательском контенте"
+base_client <-down-> traefik_ugc: "Работа с пользовательским контентом"
 @enduml

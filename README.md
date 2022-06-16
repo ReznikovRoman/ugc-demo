@@ -19,9 +19,24 @@
   - https://github.com/ReznikovRoman/netflix-ugc
 
 ## Настройка и запуск
-Docker конфигурации содержат контейнеры:
+docker-compose содержат контейнеры:
  1. server
  2. traefik
+ 3. zookeeper-kafka
+ 4. zookeeper-clickhouse
+ 5. kafka
+ 6. init-kafka (создание топиков при запуске сервиса)
+ 7. clickhouse-server-0[1-4]
+
+\* Нужно для полноценного веб-интерфейса Kafka
+
+ 9. schema-registry
+ 10. connect
+ 11. control-center
+ 12. ksqldb-server
+ 13. ksqldb-cli
+ 14. ksql-datagen
+ 15. rest-proxy
 
 Файлы docker-compose:
  1. `docker-compose.yml` - для локальной разработки
@@ -128,6 +143,11 @@ make lint
 ```shell
 pre-commit install
 ```
+
+## Kafka
+В качестве брокера сообщений используется Kafka.
+Веб-интерфейс доступен по адресу (может настраиваться до 5-10 минут):
+- `${PROJECT_BASE_URL}:9021/`
 
 ## Документация
 Документация в формате OpenAPI 3 доступна по адресам:

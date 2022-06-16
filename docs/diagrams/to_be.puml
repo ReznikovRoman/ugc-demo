@@ -51,10 +51,9 @@ frame NetflixAuthAPI {
 frame NetflixUGC {
     cloud "Traefik" as traefik_ugc
     component "API" as api_ugc
-    component "ETL Consumer" as consumer_ugc_etl
+    component "ClickHouse \nKafka integration" as consumer_clickhouse
     component "Redis Consumer" as consumer_ugc_redis
     component "Producer" as producer_ugc
-    component "ETL" as etl_ugc
     queue "Kafka" as kafka_ugc
     database "Redis Stack" as redis_stack_ugc
     database "ClickHouse" as clickhouse_ugc
@@ -62,12 +61,11 @@ frame NetflixUGC {
     api_ugc <-up-> traefik_ugc
     api_ugc <-down- redis_stack_ugc
     api_ugc -down-> producer_ugc
-    producer_ugc <-down-> kafka_ugc: "Создание сообщений о действиях пользователя. \nНапример, добавление фильма в закладки"
+    producer_ugc -down-> kafka_ugc: "Создание сообщений о действиях пользователя. \nНапример, добавление фильма в закладки"
     kafka_ugc -down-> consumer_ugc_redis
     consumer_ugc_redis -down-> redis_stack_ugc: "Пользовательский контент"
-    kafka_ugc -down-> consumer_ugc_etl: "Обработка различных действий пользователя"
-    consumer_ugc_etl -down-> etl_ugc: "Преобразование данных"
-    etl_ugc -down-> clickhouse_ugc: "Данные для аналитики"
+    kafka_ugc -down-> consumer_clickhouse: "Обработка различных действий пользователя"
+    consumer_clickhouse -down-> clickhouse_ugc: "Данные для аналитики"
 }
 
 base_client <-down-> nginx_admin: "Управление фильмами, актерами и жанрами"

@@ -39,8 +39,10 @@ docker-compose содержат контейнеры:
  15. rest-proxy
 
 Файлы docker-compose:
- 1. `docker-compose.yml` - для локальной разработки
- 2. `tests/functional/docker-compose.yml` - для функциональных тестов
+ 1. `docker-compose.yml` - для локальной разработки; используются стабы для работы с in-memory очередью;
+ в `.env` необходимо установить параметр `NUGC_USE_STUBS=1`.
+ 3. `docker-compose-dev.yml` - полный набор всех необходимых контейнеров (Kafka, ClickHouse cluster, Kafka UI).
+ 4. `tests/functional/docker-compose.yml` - для функциональных тестов.
 
 Для запуска контейнеров нужно создать файл `.env` в корне проекта.
 
@@ -60,6 +62,15 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Queue
+NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+# Config
+NUGC_USE_STUBS=0
+NUGC_TESTING=0
+NUGC_CI=0
+# Kafka
+NUGC_KAFKA_URL=kafka:9092
 ```
 
 ### Запуск проекта:
@@ -116,6 +127,15 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Queue
+NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+# Kafka
+NUGC_KAFKA_URL=kafka:9092
+# Config
+NUGC_USE_STUBS=1
+NUGC_TESTING=1
+NUGC_CI=0
 # Tests
 TEST_CLIENT_BASE_URL=http://traefik:80
 TEST_SERVER_BASE_URL=http://server:8003

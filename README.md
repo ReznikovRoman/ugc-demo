@@ -39,8 +39,7 @@ docker-compose содержат контейнеры:
  15. rest-proxy
 
 Файлы docker-compose:
- 1. `docker-compose.yml` - для локальной разработки; используются стабы для работы с in-memory очередью;
- в `.env` необходимо установить параметр `NUGC_USE_STUBS=1`.
+ 1. `docker-compose.yml` - для локальной разработки; используются стабы для работы с in-memory очередью.
  3. `docker-compose-dev.yml` - полный набор всех необходимых контейнеров (Kafka, ClickHouse cluster, Kafka UI).
  4. `tests/functional/docker-compose.yml` - для функциональных тестов.
 

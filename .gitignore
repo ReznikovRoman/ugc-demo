@@ -18,6 +18,7 @@ venv*/
 drafts/
 requirements.local.*
 tests/functional/src
+docker-compose-local.yml
 
 # Log files
 *.log

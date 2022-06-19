@@ -51,6 +51,18 @@ jobs:
       - name: Run tests
         run: |
           export PYTHONUNBUFFERED=1
+          export NUGC_DEBUG=1
+          export NUGC_PROJECT_BASE_URL=http://api-ugc.localhost:8010
+          export NUGC_SERVER_PORT=8003
+          export NUGC_PROJECT_NAME=netflix-ugc
+          export NUGC_API_V1_STR=/api/v1
+          export NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+          export NUGC_QUEUE_PROGRESS_NAME=progress-topic
+          export NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+          export NUGC_KAFKA_URL=kafka:9092
+          export NUGC_USE_STUBS=1
+          export NUGC_CI=1
+          export NUGC_TESTING=1
           export PYTEST_ADDOPTS="--ignore-glob=tests/functional/*"
           make test
 

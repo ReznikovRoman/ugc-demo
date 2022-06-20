@@ -101,6 +101,8 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Auth
+NUGC_SECRET_KEY=
 # Tests
 TEST_CLIENT_BASE_URL=http://traefik:80
 TEST_SERVER_BASE_URL=http://server:8003

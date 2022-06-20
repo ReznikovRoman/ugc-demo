@@ -19,7 +19,7 @@ from ugc.api.security import get_user_id
 async def bookmark_film(request: web.Request) -> web.Response:
     """Добавление фильма с `film_id` в закладки авторизованному пользователю."""
     user_id = get_user_id(request)
-    print('user_id',user_id)
+    print("user_id", user_id)
     return web.json_response(status=HTTPStatus.ACCEPTED)
 
 
@@ -33,11 +33,11 @@ async def bookmark_film(request: web.Request) -> web.Response:
     },
 )
 async def bookmark_films(request: web.Request) -> web.Response:
-    """Получение списка фильмов в закладках авторизованного пользователя"""
+    """Получение списка фильмов в закладках авторизованного пользователя."""
     # TODO get films_list from repository filtered by request.user["id"]
     user_id = get_user_id(request)
-    print('user_id',user_id)
-    bookmark_films_list = {"XXX":"XXX"}
+    print("user_id", user_id)
+    bookmark_films_list = {"XXX": "XXX"}
     return web.json_response(bookmark_films_list, status=HTTPStatus.OK)
 
 
@@ -51,8 +51,9 @@ async def bookmark_films(request: web.Request) -> web.Response:
     },
 )
 async def set_film_progress(request: web.Request) -> web.Response:
+    """Установка прогресса фильма с `film_id` для авторизованного пользователя."""
     user_id = get_user_id(request)
-    print('user_id',user_id)
+    print("user_id", user_id)
     return web.json_response(status=HTTPStatus.OK)
 
 
@@ -66,6 +67,7 @@ async def set_film_progress(request: web.Request) -> web.Response:
     },
 )
 async def get_film_progress(request: web.Request) -> web.Response:
+    """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
     user_id = get_user_id(request)
-    print('user_id',user_id)
+    print("user_id", user_id)
     return web.json_response(status=HTTPStatus.OK)

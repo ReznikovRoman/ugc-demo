@@ -15,9 +15,9 @@ def init_apispec(app: web.Application) -> None:
                 "type": "apiKey",
                 "description": "Type your JWT token in **Value** input box below",
                 "name": "Authorization",
-                "in": "header"
-            }
+                "in": "header",
+            },
         },
-        security=[{"user": []}]
+        security=[{"user": []}],
     )
     app.middlewares.append(validation_middleware)

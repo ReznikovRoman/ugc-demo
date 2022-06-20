@@ -6,9 +6,10 @@ from ugc.core.config import get_settings
 
 settings = get_settings()
 
+
 def get_jwt_token(request) -> str:
-    """Получение JWT токена из заголовка"""
-    token = request.headers.get('Authorization', None)
+    """Получение JWT токена из заголовка."""
+    token = request.headers.get("Authorization", None)
     if token:
         return token
     raise web.HTTPUnauthorized(reason="Authorization needed")

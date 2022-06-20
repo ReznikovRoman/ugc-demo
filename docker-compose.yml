@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   server:
@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - $ENV
+    environment:
+      - NUGC_USE_STUBS=1
     expose:
       - $NUGC_SERVER_PORT
     volumes:
@@ -21,7 +23,7 @@ services:
       - "traefik.http.routers.ugc_api.entrypoints=web"
 
   traefik:
-    image: traefik:v2.7
+    image: traefik:v2.8
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"

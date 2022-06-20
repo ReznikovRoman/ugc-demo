@@ -62,6 +62,17 @@ class Settings(BaseSettings):
             },
         },
     }
+    # Queue
+    QUEUE_PROGRESS_NAME: str = Field("progress-topic")
+    QUEUE_BOOKMARKS_NAME: str = Field("bookmarks-topic")
+
+    # Kafka
+    KAFKA_URL: str
+
+    # Config
+    USE_STUBS: bool = Field(False)
+    TESTING: bool = Field(False)
+    CI: bool = Field(False)
 
     class Config(EnvConfig):
         env_prefix = "NUGC_"

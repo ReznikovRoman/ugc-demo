@@ -19,13 +19,29 @@
   - https://github.com/ReznikovRoman/netflix-ugc
 
 ## Настройка и запуск
-Docker конфигурации содержат контейнеры:
+docker-compose содержат контейнеры:
  1. server
  2. traefik
+ 3. zookeeper-kafka
+ 4. zookeeper-clickhouse
+ 5. kafka
+ 6. init-kafka (создание топиков при запуске сервиса)
+ 7. clickhouse-server-0[1-4]
+
+\* Нужно для полноценного веб-интерфейса Kafka
+
+ 9. schema-registry
+ 10. connect
+ 11. control-center
+ 12. ksqldb-server
+ 13. ksqldb-cli
+ 14. ksql-datagen
+ 15. rest-proxy
 
 Файлы docker-compose:
- 1. `docker-compose.yml` - для локальной разработки
- 2. `tests/functional/docker-compose.yml` - для функциональных тестов
+ 1. `docker-compose.yml` - для локальной разработки; используются стабы для работы с in-memory очередью.
+ 3. `docker-compose-dev.yml` - полный набор всех необходимых контейнеров (Kafka, ClickHouse cluster, Kafka UI).
+ 4. `tests/functional/docker-compose.yml` - для функциональных тестов.
 
 Для запуска контейнеров нужно создать файл `.env` в корне проекта.
 
@@ -45,6 +61,15 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Queue
+NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+# Config
+NUGC_USE_STUBS=0
+NUGC_TESTING=0
+NUGC_CI=0
+# Kafka
+NUGC_KAFKA_URL=kafka:9092
 ```
 
 ### Запуск проекта:
@@ -103,6 +128,15 @@ NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
 # Auth
 NUGC_SECRET_KEY=
+# Queue
+NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+# Kafka
+NUGC_KAFKA_URL=kafka:9092
+# Config
+NUGC_USE_STUBS=1
+NUGC_TESTING=1
+NUGC_CI=0
 # Tests
 TEST_CLIENT_BASE_URL=http://traefik:80
 TEST_SERVER_BASE_URL=http://server:8003
@@ -130,6 +164,11 @@ make lint
 ```shell
 pre-commit install
 ```
+
+## Kafka
+В качестве брокера сообщений используется Kafka.
+Веб-интерфейс доступен по адресу (может настраиваться до 5-10 минут):
+- `${PROJECT_BASE_URL}:9021/`
 
 ## Документация
 Документация в формате OpenAPI 3 доступна по адресам:

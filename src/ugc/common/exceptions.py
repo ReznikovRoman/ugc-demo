@@ -49,3 +49,11 @@ class ImproperlyConfiguredError(NetflixUGCError):
     message = "Improperly configured service"
     code = "improperly_configured"
     status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class AuthorizationError(NetflixUGCError):
+    """Ошибка при авторизации."""
+
+    message = "Authorization error"
+    code = "authorization_error"
+    status_code = HTTPStatus.UNAUTHORIZED

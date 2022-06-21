@@ -11,13 +11,12 @@ def init_apispec(app: web.Application) -> None:
         url="/docs/swagger.json",
         swagger_path="/docs",
         securityDefinitions={
-            "user": {
+            "JWT": {
                 "type": "apiKey",
-                "description": "Type your JWT token in **Value** input box below",
-                "name": "Authorization",
                 "in": "header",
+                "name": "Authorization",
+                "description": "В поле *'Value'* надо вставить JWT: **'Bearer &lt;JWT&gt;'**, JWT - токен авторизации",
             },
         },
-        security=[{"user": []}],
     )
     app.middlewares.append(validation_middleware)

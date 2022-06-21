@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(False)
 
     # Auth
-    JWT_AUTH_SECRET_KEY: str = Field(env="NUGC_SECRET_KEY")
+    JWT_AUTH_SECRET_KEY: str = Field(env="NAA_SECRET_KEY")
     JWT_AUTH_ALGORITHM: str = "HS256"
 
     # Logging

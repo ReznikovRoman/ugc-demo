@@ -15,6 +15,7 @@ class Container(containers.DeclarativeContainer):
         modules=[
             "ugc.api.v1.handlers.ugc",
             "ugc.api.v1.handlers.misc",
+            "ugc.api.security",
         ],
     )
 

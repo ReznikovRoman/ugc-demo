@@ -1,26 +1,39 @@
+from typing import Final
+
+from dependency_injector.wiring import Provide, inject
 from jose import JWTError, jwt
 
-from aiohttp import web
+from ugc.common.exceptions import AuthorizationError
+from ugc.containers import Container
 
-from ugc.core.config import get_settings
-
-settings = get_settings()
-
-
-def get_jwt_token(request) -> str:
-    """Получение JWT токена из заголовка."""
-    token = request.headers.get("Authorization", None)
-    if token:
-        return token
-    raise web.HTTPUnauthorized(reason="Authorization needed")
+TOKEN_TYPE: Final[str] = "Bearer"
 
 
-def get_user_id(request) -> str:
+def get_token_from_header(headers) -> str:
+    """Получение токена из заголовка 'Authorization'."""
+    auth = headers.get("Authorization", None)
+    if not auth:
+        raise AuthorizationError("Authorization header is expected", "authorization_header_missing")
+
+    parts = auth.split()
+    if parts[0].lower() != TOKEN_TYPE.lower():
+        raise AuthorizationError(f"Authorization header must start with {TOKEN_TYPE}", "invalid_header")
+    if len(parts) == 1:
+        raise AuthorizationError("Token not found", "invalid_header")
+    if len(parts) > 2:
+        raise AuthorizationError(f"Authorization header must be {TOKEN_TYPE} token", "invalid_header")
+
+    token = parts[1]
+    return token
+
+
+@inject
+def get_user_id_from_jwt(headers, config=Provide[Container.config]) -> str:
     """Получение id пользователя из JWT токена."""
-    token = get_jwt_token(request)
+    token = get_token_from_header(headers)
     try:
-        payload = jwt.decode(token, settings.JWT_AUTH_SECRET_KEY, algorithms=[settings.JWT_AUTH_ALGORITHM])
+        payload = jwt.decode(token, config["JWT_AUTH_SECRET_KEY"], algorithms=[config["JWT_AUTH_ALGORITHM"]])
         user_id: str = payload.get("sub")
     except JWTError:
-        raise web.HTTPUnauthorized(reason="invalid JWT")
+        raise AuthorizationError
     return user_id

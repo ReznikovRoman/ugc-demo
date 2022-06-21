@@ -127,7 +127,7 @@ NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
 # Auth
-NUGC_SECRET_KEY=
+NAA_SECRET_KEY=
 # Queue
 NUGC_QUEUE_PROGRESS_NAME=progress-topic
 NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic

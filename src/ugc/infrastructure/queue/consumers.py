@@ -11,8 +11,6 @@ from .typedefs import IConsumerRecord, Message
 class AsyncConsumer(ABC):
     """Асинхронный консьюмер сообщений из очереди."""
 
-    queue: str
-
     @abstractmethod
     async def fetch_message(self) -> IConsumerRecord:
         """Чтение сообщения из очереди."""
@@ -21,7 +19,7 @@ class AsyncConsumer(ABC):
 class KafkaConsumer(AsyncConsumer):
     """Консьюмер сообщений из Kafka."""
 
-    def __init__(self, client: AIOKafkaConsumer):
+    def __init__(self, client: AIOKafkaConsumer) -> None:
         assert isinstance(client, AIOKafkaConsumer)
         self._client = client
 

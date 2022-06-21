@@ -1,4 +1,5 @@
-from typing import Final
+from typing import Any, Final
+from uuid import UUID
 
 from dependency_injector.wiring import Provide, inject
 from jose import JWTError, jwt
@@ -9,7 +10,7 @@ from ugc.containers import Container
 TOKEN_TYPE: Final[str] = "Bearer"
 
 
-def get_token_from_header(headers) -> str:
+def get_token_from_header(headers: dict[str, Any]) -> str:
     """Получение токена из заголовка 'Authorization'."""
     auth = headers.get("Authorization", None)
     if not auth:
@@ -28,7 +29,7 @@ def get_token_from_header(headers) -> str:
 
 
 @inject
-def get_user_id_from_jwt(headers, config=Provide[Container.config]) -> str:
+def get_user_id_from_jwt(headers: dict[str, Any], config=Provide[Container.config]) -> UUID:
     """Получение id пользователя из JWT токена."""
     token = get_token_from_header(headers)
     try:
@@ -36,4 +37,4 @@ def get_user_id_from_jwt(headers, config=Provide[Container.config]) -> str:
         user_id: str = payload.get("sub")
     except JWTError:
         raise AuthorizationError
-    return user_id
+    return UUID(user_id)

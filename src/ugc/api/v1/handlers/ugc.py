@@ -22,7 +22,7 @@ from ugc.api.utils import orjson_response
 async def add_film_bookmark(request: web.Request) -> web.Response:
     """Добавление фильма с `film_id` в закладки авторизованному пользователю."""
     film_id: UUID = request.match_info["film_id"]
-    user_id: UUID = get_user_id_from_jwt(request.headers)
+    user_id = get_user_id_from_jwt(request.headers)
     # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
     print("user_id", user_id, "film_id", film_id)
     return orjson_response(status=HTTPStatus.ACCEPTED)
@@ -40,7 +40,7 @@ async def add_film_bookmark(request: web.Request) -> web.Response:
 )
 async def get_user_films_bookmarks(request: web.Request) -> web.Response:
     """Получение списка фильмов в закладках авторизованного пользователя."""
-    user_id: UUID = get_user_id_from_jwt(request.headers)
+    user_id = get_user_id_from_jwt(request.headers)
     # TODO: user_id нужен для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/10
     print("user_id", user_id)
     bookmark_films_list = {"XXX": "XXX"}
@@ -60,7 +60,7 @@ async def get_user_films_bookmarks(request: web.Request) -> web.Response:
 async def track_film_progress(request: web.Request) -> web.Response:
     """Сохранение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
-    user_id: UUID = get_user_id_from_jwt(request.headers)
+    user_id = get_user_id_from_jwt(request.headers)
     print("user_id", user_id, "film_id", film_id)
     # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
     return orjson_response(status=HTTPStatus.OK)
@@ -79,7 +79,7 @@ async def track_film_progress(request: web.Request) -> web.Response:
 async def get_film_progress(request: web.Request) -> web.Response:
     """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
-    user_id: UUID = get_user_id_from_jwt(request.headers)
+    user_id = get_user_id_from_jwt(request.headers)
     print("user_id", user_id, "film_id", film_id)
     # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/10
     return orjson_response(status=HTTPStatus.OK)

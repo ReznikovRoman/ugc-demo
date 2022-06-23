@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Coroutine
+from typing import Any, Coroutine, Iterator
 
 sentinel: Any = object()
 
@@ -15,3 +15,9 @@ def delay_tasks(*tasks: Coroutine) -> None:
         task = asyncio.create_task(_task)
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
+
+
+def resolve_callables(mapping: dict) -> Iterator[tuple[Any, Any]]:
+    """Генерация пар ключ-значение из `mapping`, где значения могут быть callable объектами."""
+    for key, value in mapping.items():
+        yield key, value() if callable(value) else value

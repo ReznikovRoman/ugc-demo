@@ -10,17 +10,34 @@ services:
       - $ENV
     environment:
       - NUGC_USE_STUBS=1
+      - REDIS_OM_URL=${NUGC_REDIS_OM_URL}
     expose:
       - $NUGC_SERVER_PORT
     volumes:
       - .:/app
     command: >
       sh -c "cd /app/src
-      && gunicorn --reload --worker-class aiohttp.GunicornWebWorker --workers 2 --bind 0.0.0.0:$NUGC_SERVER_PORT ugc.main:create_app"
+      && gunicorn --reload --worker-class aiohttp.worker.GunicornUVLoopWebWorker --workers 2 --bind 0.0.0.0:$NUGC_SERVER_PORT ugc.main:create_app"
+    depends_on:
+      redis:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ugc_api.rule=Host(`api-ugc.localhost`,`traefik`)"
       - "traefik.http.routers.ugc_api.entrypoints=web"
+
+  redis:
+    image: redis/redis-stack:7.0.0-RC5
+    ports:
+      - "6379:6379"
+      - "13333:8001"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: redis-cli -p 6379 ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   traefik:
     image: traefik:v2.8
@@ -39,3 +56,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
       - server
+
+
+volumes:
+  redis_data:

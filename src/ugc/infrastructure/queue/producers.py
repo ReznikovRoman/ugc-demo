@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, Iterator
+from typing import AsyncIterator, Awaitable, Callable
 
 from aiokafka.errors import KafkaError
 from aiokafka.producer import AIOKafkaProducer
@@ -35,7 +35,7 @@ async def init_kafka_producer_client(
     servers: list[str],
     key_serializer: Callable[[str], bytes],
     value_serializer: Callable[[Message], bytes],
-) -> Iterator[AIOKafkaProducer]:
+) -> AsyncIterator[AIOKafkaProducer]:
     assert isinstance(servers, list), "`servers` is not an instance of `list`"
     assert isinstance(servers[0], str), "`servers` must be a list of strings"
     assert callable(key_serializer), "`key_serializer` is not callable"

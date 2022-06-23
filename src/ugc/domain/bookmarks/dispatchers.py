@@ -29,7 +29,7 @@ class BookmarkDispatcherService:
         assert isinstance(config, dict)
         self._config = config
 
-    async def dispatch_bookmark_switch(self, user_id: UUID, film_id: UUID, bookmarked: bool) -> FilmBookmark:
+    async def dispatch_bookmark_switch(self, *, user_id: UUID, film_id: UUID, bookmarked: bool) -> FilmBookmark:
         bookmark = self._bookmark_factory.create_new(user_id=user_id, film_id=film_id, bookmarked=bookmarked)
         delay_tasks(
             self._producer.send(

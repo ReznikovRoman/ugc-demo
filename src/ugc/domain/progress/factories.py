@@ -2,7 +2,7 @@ from ..factories import BaseModelFactory
 from .types import FilmProgress
 
 
-class FilmProgressFactory(BaseModelFactory):
+class FilmProgressFactory(BaseModelFactory[FilmProgress]):
     """Фабрика по созданию объектов `FilmProgress`."""
 
     cls = FilmProgress

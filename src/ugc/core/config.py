@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Union
+from typing import Literal, Union
 
 from pydantic import AnyHttpUrl, Field, validator
 from pydantic.env_settings import BaseSettings
@@ -29,42 +29,26 @@ class Settings(BaseSettings):
     JWT_AUTH_SECRET_KEY: str = Field(env="NAA_SECRET_KEY")
     JWT_AUTH_ALGORITHM: str = "HS256"
 
-    # Logging
-    logging_config = {
-        "version": 1,
-        "disable_existing_loggers": True,
-        "formatters": {
-            "verbose": {
-                "format": "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",
-            },
-        },
-        "handlers": {
-            "console": {
-                "level": "DEBUG",
-                "class": "logging.StreamHandler",
-                "formatter": "verbose",
-            },
-        },
-        "root": {
-            "level": "DEBUG",
-            "handlers": ["console"],
-        },
-        "loggers": {
-            "asyncio": {
-                "level": "INFO",
-                "handlers": ["console"],
-                "propagate": False,
-            },
-            "ugc": {
-                "level": "DEBUG",
-                "handlers": ["console"],
-                "propagate": False,
-            },
-        },
-    }
+    # Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_MAIN_DB: int
+    REDIS_OM_URL: str
+    REDIS_DEFAULT_CHARSET: str = "utf-8"
+    REDIS_DECODE_RESPONSES: bool | Literal[True, False] = True
+    REDIS_RETRY_ON_TIMEOUT: bool = True
+    REDIS_KEY_PREFIX: str = Field("ugc")
+
     # Queue
     QUEUE_PROGRESS_NAME: str = Field("progress-topic")
+    QUEUE_PROGRESS_GROUP: str = Field("progress-group")
+    QUEUE_PROGRESS_CONSUMERS: int = Field(2)
     QUEUE_BOOKMARKS_NAME: str = Field("bookmarks-topic")
+    QUEUE_BOOKMARKS_GROUP: str = Field("bookmarks-group")
+    QUEUE_BOOKMARKS_CONSUMERS: int = Field(2)
+    QUEUE_ENABLE_AUTOCOMMIT: bool = Field(True)
+    QUEUE_AUTO_COMMIT_INTERVAL_MS: int = Field(1000)
+    QUEUE_AUTO_OFFSET_RESET: str = Field("earliest")
 
     # Kafka
     KAFKA_URL: str

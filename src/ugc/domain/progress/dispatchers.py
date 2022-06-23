@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Any
 from uuid import UUID
 
@@ -9,7 +8,6 @@ from .factories import FilmProgressFactory
 from .types import FilmProgress
 
 
-@dataclasses.dataclass
 class ProgressDispatcherService:
     """Сервис для диспатчинга событий о прогрессе фильма."""
 
@@ -23,7 +21,7 @@ class ProgressDispatcherService:
         assert isinstance(config, dict)
         self._config = config
 
-    async def dispatch_progress_tracking(self, user_id: UUID, film_id: UUID, viewed_frame: int) -> FilmProgress:
+    async def dispatch_progress_tracking(self, *, user_id: UUID, film_id: UUID, viewed_frame: int) -> FilmProgress:
         progress = self._progress_factory.create_new(user_id=user_id, film_id=film_id, viewed_frame=viewed_frame)
         delay_tasks(
             self._producer.send(

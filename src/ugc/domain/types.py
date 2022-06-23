@@ -15,7 +15,7 @@ class _ModelMeta(type):
         "eq": True,
         "order": True,
         "unsafe_hash": True,
-        "frozen": True,
+        "frozen": False,
         "kw_only": True,
         "match_args": True,
         "slots": True,

@@ -37,7 +37,14 @@ class Settings(BaseSettings):
 
     # Queue
     QUEUE_PROGRESS_NAME: str = Field("progress-topic")
+    QUEUE_PROGRESS_GROUP: str = Field("progress-group")
+    QUEUE_PROGRESS_CONSUMERS: int = Field(2)
     QUEUE_BOOKMARKS_NAME: str = Field("bookmarks-topic")
+    QUEUE_BOOKMARKS_GROUP: str = Field("bookmarks-group")
+    QUEUE_BOOKMARKS_CONSUMERS: int = Field(2)
+    QUEUE_ENABLE_AUTOCOMMIT: bool = Field(True)
+    QUEUE_AUTO_COMMIT_INTERVAL_MS: int = Field(1000)
+    QUEUE_AUTO_OFFSET_RESET: str = Field("earliest")
 
     # Kafka
     KAFKA_URL: str

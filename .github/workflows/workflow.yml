@@ -31,6 +31,16 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis/redis-stack-server:7.0.0-RC5
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10
@@ -57,7 +67,19 @@ jobs:
           export NUGC_PROJECT_NAME=netflix-ugc
           export NUGC_API_V1_STR=/api/v1
           export NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+          export NUGC_REDIS_HOST=redis
+          export NUGC_REDIS_PORT=6379
+          export NUGC_REDIS_MAIN_DB=0
+          export NUGC_REDIS_OM_URL=redis://@redis:6379
+          export REDIS_OM_URL=redis://@redis:6379
+          export NUGC_REDIS_DEFAULT_CHARSET=utf-8
+          export NUGC_REDIS_DECODE_RESPONSES=1
+          export NUGC_REDIS_RETRY_ON_TIMEOUT=1
           export NUGC_QUEUE_PROGRESS_NAME=progress-topic
+          export NUGC_QUEUE_PROGRESS_GROUP=progress-group
+          export NUGC_QUEUE_PROGRESS_CONSUMERS=2
+          export NUGC_QUEUE_BOOKMARKS_GROUP=bookmarks-group
+          export NUGC_QUEUE_BOOKMARKS_CONSUMERS=2
           export NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
           export NUGC_KAFKA_URL=kafka:9092
           export NUGC_USE_STUBS=1

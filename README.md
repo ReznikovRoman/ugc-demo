@@ -21,12 +21,13 @@
 ## Настройка и запуск
 docker-compose содержат контейнеры:
  1. server
- 2. traefik
- 3. zookeeper-kafka
- 4. zookeeper-clickhouse
- 5. kafka
- 6. init-kafka (создание топиков при запуске сервиса)
- 7. clickhouse-server-0[1-4]
+ 2. redis
+ 3. traefik
+ 4. zookeeper-kafka
+ 5. zookeeper-clickhouse
+ 6. kafka
+ 7. init-kafka (создание топиков при запуске сервиса)
+ 8. clickhouse-server-0[1-4]
 
 \* Нужно для полноценного веб-интерфейса Kafka
 
@@ -61,9 +62,21 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Redis
+NUGC_REDIS_HOST=redis
+NUGC_REDIS_PORT=6379
+NUGC_REDIS_MAIN_DB=0
+NUGC_REDIS_OM_URL=redis://@redis:6379
+NUGC_REDIS_DEFAULT_CHARSET=utf-8
+NUGC_REDIS_DECODE_RESPONSES=1
+NUGC_REDIS_RETRY_ON_TIMEOUT=1
 # Queue
 NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_PROGRESS_GROUP=progress-group
+NUGC_QUEUE_PROGRESS_CONSUMERS=2
 NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+NUGC_QUEUE_BOOKMARKS_GROUP=bookmarks-group
+NUGC_QUEUE_BOOKMARKS_CONSUMERS=2
 # Config
 NUGC_USE_STUBS=0
 NUGC_TESTING=0
@@ -126,9 +139,21 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Redis
+NUGC_REDIS_HOST=redis
+NUGC_REDIS_PORT=6379
+NUGC_REDIS_MAIN_DB=0
+NUGC_REDIS_OM_URL=redis://@redis:6379
+NUGC_REDIS_DEFAULT_CHARSET=utf-8
+NUGC_REDIS_DECODE_RESPONSES=1
+NUGC_REDIS_RETRY_ON_TIMEOUT=1
 # Queue
 NUGC_QUEUE_PROGRESS_NAME=progress-topic
+NUGC_QUEUE_PROGRESS_GROUP=progress-group
+NUGC_QUEUE_PROGRESS_CONSUMERS=2
 NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+NUGC_QUEUE_BOOKMARKS_GROUP=bookmarks-group
+NUGC_QUEUE_BOOKMARKS_CONSUMERS=2
 # Kafka
 NUGC_KAFKA_URL=kafka:9092
 # Config
@@ -162,6 +187,11 @@ make lint
 ```shell
 pre-commit install
 ```
+
+## Redis
+Redis используется в качестве основной БД (Redis Stack on Redis Enterprise).
+Веб-интерфейс RedisInsight доступен по адресу:
+- `localhost:13333`
 
 ## Kafka
 В качестве брокера сообщений используется Kafka.

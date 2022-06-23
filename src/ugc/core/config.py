@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     DEBUG: bool = Field(False)
 
+    # Auth
+    JWT_AUTH_SECRET_KEY: str = Field(env="NAA_SECRET_KEY")
+    JWT_AUTH_ALGORITHM: str = "HS256"
+
     # Redis
     REDIS_HOST: str
     REDIS_PORT: int

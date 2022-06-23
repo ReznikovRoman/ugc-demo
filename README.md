@@ -62,6 +62,8 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Auth
+NAA_SECRET_KEY=changeme
 # Redis
 NUGC_REDIS_HOST=redis
 NUGC_REDIS_PORT=6379
@@ -123,7 +125,7 @@ export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst) && make test
 
 Для функциональных тестов нужно создать файл `.env` в папке ./tests/functional
 
-**Пример `.env` (для корректной работы тестов надо подставить корректные значения для auth0):**
+**Пример `.env` (для корректной работы тестов надо подставить корректные значения для NAA):**
 ```dotenv
 # Tests
 ENV=.env
@@ -139,6 +141,8 @@ NUGC_SERVER_PORT=8003
 NUGC_PROJECT_NAME=netflix-ugc
 NUGC_API_V1_STR=/api/v1
 NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+# Auth
+NAA_SECRET_KEY=changeme
 # Redis
 NUGC_REDIS_HOST=redis
 NUGC_REDIS_PORT=6379

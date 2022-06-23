@@ -67,6 +67,7 @@ jobs:
           export NUGC_PROJECT_NAME=netflix-ugc
           export NUGC_API_V1_STR=/api/v1
           export NUGC_SERVER_HOSTS=http://api-ugc.localhost:8010
+          export NAA_SECRET_KEY=secret
           export NUGC_REDIS_HOST=redis
           export NUGC_REDIS_PORT=6379
           export NUGC_REDIS_MAIN_DB=0

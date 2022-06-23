@@ -1,5 +1,6 @@
 import asyncio
 import dataclasses
+import logging
 from typing import Awaitable, Callable, List
 
 from ugc.infrastructure.queue.consumers import AsyncConsumer
@@ -35,7 +36,11 @@ class ProcessorService:
     async def process_event(self) -> None:
         """Обработка сообщения из очереди."""
         message = await self.consumer.fetch_message()
-        await self.message_callback(message)
+        try:
+            await self.message_callback(message)
+        except Exception as e:
+            logging.error("Error while processing message: {exception}".format(exception=e))
+            raise e
 
     async def _processor_loop(self) -> None:
         while True:

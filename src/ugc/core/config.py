@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Union
+from typing import Literal, Union
 
 from pydantic import AnyHttpUrl, Field, validator
 from pydantic.env_settings import BaseSettings
@@ -25,9 +25,26 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     DEBUG: bool = Field(False)
 
+    # Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_MAIN_DB: int
+    REDIS_OM_URL: str
+    REDIS_DEFAULT_CHARSET: str = "utf-8"
+    REDIS_DECODE_RESPONSES: bool | Literal[True, False] = True
+    REDIS_RETRY_ON_TIMEOUT: bool = True
+    REDIS_KEY_PREFIX: str = Field("ugc")
+
     # Queue
     QUEUE_PROGRESS_NAME: str = Field("progress-topic")
+    QUEUE_PROGRESS_GROUP: str = Field("progress-group")
+    QUEUE_PROGRESS_CONSUMERS: int = Field(2)
     QUEUE_BOOKMARKS_NAME: str = Field("bookmarks-topic")
+    QUEUE_BOOKMARKS_GROUP: str = Field("bookmarks-group")
+    QUEUE_BOOKMARKS_CONSUMERS: int = Field(2)
+    QUEUE_ENABLE_AUTOCOMMIT: bool = Field(True)
+    QUEUE_AUTO_COMMIT_INTERVAL_MS: int = Field(1000)
+    QUEUE_AUTO_OFFSET_RESET: str = Field("earliest")
 
     # Kafka
     KAFKA_URL: str

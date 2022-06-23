@@ -3,9 +3,11 @@ import logging.config
 import orjson
 from dependency_injector import containers, providers
 
-from ugc.domain import bookmarks, progress
-from ugc.infrastructure.queue import producers
-from ugc.infrastructure.queue.stubs import InMemoryProducer, InMemoryQueue
+from ugc.domain import bookmarks, processors, progress
+from ugc.helpers import sentinel
+from ugc.infrastructure.db import redis
+from ugc.infrastructure.queue import consumers, producers
+from ugc.infrastructure.queue.stubs import InMemoryProcessor, InMemoryQueue
 
 
 class Container(containers.DeclarativeContainer):
@@ -28,6 +30,11 @@ class Container(containers.DeclarativeContainer):
 
     # Infrastructure
 
+    redis_client = providers.Resource(
+        redis.init_redis,
+        url=config.REDIS_OM_URL,
+    )
+
     kafka_producer_client = providers.Resource(
         producers.init_kafka_producer_client,
         servers=providers.List(config.KAFKA_URL),
@@ -40,9 +47,48 @@ class Container(containers.DeclarativeContainer):
         client=kafka_producer_client,
     )
 
+    consumer_client_config = {
+        "key_deserializer": providers.Object(lambda key: key.decode()),
+        "value_deserializer": providers.Object(lambda value: orjson.loads(value)),
+    }
+
+    kafka_consumer_progress_client = providers.Resource(
+        consumers.init_kafka_consumer_client,
+        config=config,
+        topic=config.QUEUE_PROGRESS_NAME,
+        group_id=config.QUEUE_PROGRESS_GROUP,
+        **consumer_client_config,
+    )
+    kafka_progress_consumer = providers.Singleton(
+        consumers.KafkaConsumer,
+        client=kafka_consumer_progress_client,
+    )
+
+    kafka_consumer_bookmark_client = providers.Resource(
+        consumers.init_kafka_consumer_client,
+        config=config,
+        topic=config.QUEUE_BOOKMARKS_NAME,
+        group_id=config.QUEUE_BOOKMARKS_GROUP,
+        **consumer_client_config,
+    )
+    kafka_bookmark_consumer = providers.Singleton(
+        consumers.KafkaConsumer,
+        client=kafka_consumer_bookmark_client,
+    )
+
     # Domain -> Progress
 
     progress_factory = providers.Factory(progress.FilmProgressFactory)
+
+    progress_repository = providers.Singleton(
+        progress.FilmProgressRepository,
+    )
+
+    progress_processor = providers.Singleton(
+        progress.ProgressProcessor,
+        progress_factory=progress_factory,
+        progress_repository=progress_repository,
+    )
 
     progress_dispatcher_service = providers.Factory(
         progress.ProgressDispatcherService,
@@ -51,9 +97,32 @@ class Container(containers.DeclarativeContainer):
         config=config,
     )
 
+    progress_processor_service = providers.Factory(
+        processors.ProcessorService,
+        consumer=kafka_progress_consumer,
+        concurrency=config.QUEUE_PROGRESS_CONSUMERS,
+        message_callback=progress_processor,
+    )
+
     # Domain -> Bookmarks
 
     bookmark_factory = providers.Factory(bookmarks.FilmBookmarkFactory)
+
+    bookmark_repository = providers.Singleton(
+        bookmarks.BookmarkRepository,
+        bookmark_factory=bookmark_factory,
+    )
+
+    bookmark_service = providers.Singleton(
+        bookmarks.BookmarkService,
+        bookmark_repository=bookmark_repository,
+    )
+
+    bookmark_processor = providers.Singleton(
+        bookmarks.BookmarkProcessor,
+        bookmark_factory=bookmark_factory,
+        bookmark_service=bookmark_service,
+    )
 
     bookmark_dispatcher_service = providers.Factory(
         bookmarks.BookmarkDispatcherService,
@@ -62,20 +131,49 @@ class Container(containers.DeclarativeContainer):
         config=config,
     )
 
+    bookmark_processor_service = providers.Factory(
+        processors.ProcessorService,
+        consumer=kafka_bookmark_consumer,
+        concurrency=config.QUEUE_BOOKMARKS_CONSUMERS,
+        message_callback=bookmark_processor,
+    )
+
 
 def override_providers(container: Container) -> Container:
     if not container.config.USE_STUBS():
         return container
+
     container.kafka_producer_client.override(providers.Resource(dummy_resource))
-    container.kafka_producer.override(
-        providers.Factory(
-            InMemoryProducer,
-            # TODO (https://github.com/ReznikovRoman/netflix-ugc/issues/8):
-            #  - Проверить, что консьюмеры будут корректно работать со стабами.
-            queue=providers.Singleton(InMemoryQueue),
-        ),
+    container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
+    container.kafka_producer.override(sentinel)
+    container.kafka_bookmark_consumer.override(sentinel)
+    container.kafka_progress_consumer.override(sentinel)
+
+    progress_processor = providers.Singleton(
+        InMemoryProcessor,
+        queue=providers.Singleton(InMemoryQueue),
     )
+    bookmark_processor = providers.Singleton(
+        InMemoryProcessor,
+        queue=providers.Singleton(InMemoryQueue),
+    )
+    container.progress_dispatcher_service.add_kwargs(producer=progress_processor)
+    container.bookmark_dispatcher_service.add_kwargs(producer=bookmark_processor)
+    container.progress_processor_service.add_kwargs(consumer=progress_processor)
+    container.bookmark_processor_service.add_kwargs(consumer=bookmark_processor)
+
     return container
+
+
+async def get_processors(container: Container) -> list[processors.ProcessorService]:
+    processor_services = [
+        container.progress_processor_service(),
+        container.bookmark_processor_service(),
+    ]
+    if container.progress_processor_service.is_async_mode_enabled():
+        return [await processor_service for processor_service in processor_services]
+    return processor_services
 
 
 async def dummy_resource() -> None:

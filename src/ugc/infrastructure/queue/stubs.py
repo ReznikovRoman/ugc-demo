@@ -4,6 +4,7 @@ import datetime
 import weakref
 from typing import Awaitable
 
+from .consumers import AsyncConsumer
 from .producers import AsyncProducer
 from .typedefs import Message
 
@@ -12,6 +13,12 @@ from .typedefs import Message
 class InMemoryRecordMetadata:
     queue: str
     timestamp: int = dataclasses.field(default_factory=datetime.datetime.now)
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class InMemoryConsumerRecord:
+    key: str
+    value: Message
 
 
 class InMemoryQueue:
@@ -29,8 +36,8 @@ class InMemoryQueue:
         self._queue.put_nowait(message)
 
 
-class InMemoryProducer(AsyncProducer):
-    """Продюсер сообщений в in-memory очередь."""
+class InMemoryProcessor(AsyncProducer, AsyncConsumer):
+    """Обработчик сообщений из in-memory очереди."""
 
     def __init__(self, queue: InMemoryQueue):
         self.queue = queue
@@ -40,6 +47,10 @@ class InMemoryProducer(AsyncProducer):
         metadata = self._get_metadata(queue)
         _ = weakref.finalize(metadata, metadata.close)
         return metadata
+
+    async def fetch_message(self) -> InMemoryConsumerRecord:
+        message = await self.queue.get()
+        return InMemoryConsumerRecord(key="inmemory", value=message)
 
     @staticmethod
     async def _get_metadata(queue: str) -> InMemoryRecordMetadata:

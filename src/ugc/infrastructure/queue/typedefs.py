@@ -8,3 +8,10 @@ class IAsyncRecordMetadata(Protocol):
 
     queue: str
     timestamp: int
+
+
+class IConsumerRecord(Protocol):
+    """Сообщение из очереди."""
+
+    key: str
+    value: Message

@@ -90,9 +90,8 @@ async def track_film_progress(
     viewed_frame: int = None
     if request.body_exists:
         body = await request.json()
-        if "viewed_frame" in body:
-            if body["viewed_frame"]:
-                viewed_frame = body["viewed_frame"]
+        if "viewed_frame" in body and body["viewed_frame"]:
+            viewed_frame = body["viewed_frame"]
     if not viewed_frame:
         return orjson_response(status=HTTPStatus.BAD_REQUEST)
     progress = await progress_dispatcher_service.dispatch_progress_tracking(

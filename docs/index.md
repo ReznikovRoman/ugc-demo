@@ -17,6 +17,8 @@
 - Авторизированный пользователь
   - Добавление фильма `film_id` в закладки пользователя
     - `POST /api/v1/users/me/bookmarks/films/{film_id}`
+  - Удаление фильма `film_id` из закладок пользователя
+    - `DELETE /api/v1/users/me/bookmarks/films/{film_id}`
   - Получение списка закладок по фильмам для пользователя
     - `GET /api/v1/users/me/bookmarks/films`
   - Трекинг прогресса фильма `film_id` для пользователя
@@ -27,5 +29,5 @@
           "viewed_frame": 123.412
         }
       ```
-  - \* Получение прогресса фильма `film_id` для пользователя
+  - Получение прогресса фильма `film_id` для пользователя
     - `GET /api/v1/users/me/progress/films/{film_id}`

@@ -22,6 +22,7 @@ class BookmarkService:
             return await self._repository.create(bookmark)
 
     async def get_user_bookmarks(self, user_id: UUID) -> list[FilmBookmark]:
+        """Получение списка закладок пользователя по его ID."""
         bookmarks = await self._repository.get_by_user_id(str(user_id))
         return bookmarks
 

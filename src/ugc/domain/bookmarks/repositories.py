@@ -31,12 +31,12 @@ class BookmarkRepository(BaseRepository[FilmBookmark]):
         return bookmark
 
     async def get_by_user_id(self, user_id: str) -> list[types.FilmBookmark]:
-        """Получения списка закладок пользователя по его ID."""
+        """Получение списка закладок пользователя по его ID."""
         bookmarks = await self.model.find(self.model.user_id == user_id).all()
         return self._deserialize_sequence(bookmarks)
 
     async def get_by_film_id(self, *, user_id: str, film_id: str) -> types.FilmBookmark:
-        """Получение закладки пользователя по id фильма."""
+        """Получение закладки пользователя по ID фильма."""
         try:
             obj = await self.model.find(
                 (self.model.user_id == user_id) &

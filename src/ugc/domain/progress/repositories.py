@@ -31,7 +31,7 @@ class FilmProgressRepository(BaseRepository[UserFilmProgress]):
             raise NotFoundError()
 
     async def update_or_create_progress(self, progress: FilmProgress, /) -> FilmProgress:
-        """Трекинг прогресса фильма.
+        """Создание или обновление прогресса фильма.
 
         Если объект прогресса уже есть в БД, то обновляем `viewed_frame` для него.
         Если объекта еще нет - создаем новый.

@@ -1,4 +1,7 @@
-from ...common.exceptions import NotFoundError
+from uuid import UUID
+
+from ugc.common.exceptions import NotFoundError
+
 from .repositories import BookmarkRepository
 from .types import FilmBookmark
 
@@ -17,6 +20,10 @@ class BookmarkService:
             return await self._repository.get_by_film_id(user_id=user_id, film_id=film_id)
         except NotFoundError:
             return await self._repository.create(bookmark)
+
+    async def get_user_bookmarks(self, user_id: UUID) -> list[FilmBookmark]:
+        bookmarks = await self._repository.get_by_user_id(str(user_id))
+        return bookmarks
 
     async def delete_by_film_id(self, bookmark: FilmBookmark, /) -> None:
         """Удаление закладки пользователя по id фильма."""

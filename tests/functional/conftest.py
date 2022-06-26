@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from .settings import get_settings
-from .testlib import create_anon_client, create_auth_client, flush_redis
+from .testlib import create_anon_client, create_auth_client, flush_redis, run_redis_migrations
 
 if TYPE_CHECKING:
     from .settings import Test
@@ -50,3 +50,4 @@ async def _autoflush_db() -> None:
         yield
     finally:
         await flush_redis()
+        await run_redis_migrations()

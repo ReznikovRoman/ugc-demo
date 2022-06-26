@@ -5,6 +5,8 @@ from typing import Any
 
 Id = int
 
+# TODO (https://github.com/ReznikovRoman/netflix-ugc/issues/16): перейти с датаклассов на модели Pydantic
+
 
 class _ModelMeta(type):
     """Мета-класс для создания датаклассов."""

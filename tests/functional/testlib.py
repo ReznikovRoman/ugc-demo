@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 
 import aioredis
 import orjson
+from aredis_om import Migrator
 
 import aiohttp
 from aiohttp import ClientSession
@@ -119,6 +120,10 @@ def create_anon_client() -> APIClient:
 
 def create_auth_client() -> APIClient:
     return APIClient(base_url=settings.CLIENT_BASE_URL, use_authorization=True)
+
+
+async def run_redis_migrations() -> None:
+    await Migrator("src.ugc").run()
 
 
 async def flush_redis() -> None:

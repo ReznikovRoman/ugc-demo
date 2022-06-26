@@ -105,6 +105,8 @@ services:
     image: ugc-api-yandex
     env_file:
       - $ENV
+    environment:
+      - REDIS_OM_URL=${NUGC_REDIS_OM_URL}
     volumes:
       - ./../../src:/app/src
       - ./../../tests:/app/tests

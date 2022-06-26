@@ -14,12 +14,7 @@ class BookmarkDispatcherService:
     В текущей реализации события о добавлении и удалении закладок попадают в одну очередь.
     """
 
-    def __init__(
-        self,
-        bookmark_factory: FilmBookmarkFactory,
-        producer: AsyncProducer,
-        config: dict[str, Any],
-    ) -> None:
+    def __init__(self, bookmark_factory: FilmBookmarkFactory, producer: AsyncProducer, config: dict[str, Any]) -> None:
         assert isinstance(bookmark_factory, FilmBookmarkFactory)
         self._bookmark_factory = bookmark_factory
 

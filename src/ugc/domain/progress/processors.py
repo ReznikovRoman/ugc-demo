@@ -17,5 +17,5 @@ class ProgressProcessor:
 
     async def __call__(self, message: IConsumerRecord) -> FilmProgress:
         progress = self._factory.create_from_serialized(message.value)
-        await self._repository.track_progress(progress)
+        await self._repository.update_or_create_progress(progress)
         return progress

@@ -9,3 +9,11 @@ class FilmBookmarkList(Schema):
     film_id = fields.UUID()
     bookmarked = fields.Boolean(default=True)
     bookmarked_at = fields.DateTime(format="%Y-%m-%d %H:%M:%S")
+
+
+class FilmProgressDetail(Schema):
+    """Сериалайзер прогресса фильма."""
+
+    user_id = fields.UUID()
+    film_id = fields.UUID()
+    viewed_frame = fields.Integer()

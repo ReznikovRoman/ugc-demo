@@ -16,6 +16,7 @@ from ugc.containers import Container
 
 if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkService
+    from ugc.domain.progress import ProgressService
 
 
 @docs(
@@ -85,15 +86,22 @@ async def track_film_progress(request: web.Request) -> web.Response:
     summary="Получить прогресс фильма для пользователя.",
     security=[{"JWT": []}],
     responses={
-        HTTPStatus.OK: {"description": "Прогресс фильма."},
+        HTTPStatus.OK: {
+            "description": "Прогресс фильма.",
+            "schema": openapi.FilmProgressDetail,
+        },
         HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.NOT_FOUND: {"description": "Прогресс для данного фильма не найден."},
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 )
-async def get_film_progress(request: web.Request) -> web.Response:
+@inject
+async def get_film_progress(
+    request: web.Request, *,
+    progress_service: ProgressService = Provide[Container.progress_service],
+) -> web.Response:
     """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
     user_id = get_user_id_from_jwt(request.headers)
-    print("user_id", user_id, "film_id", film_id)
-    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/10
-    return orjson_response(status=HTTPStatus.OK)
+    progress = await progress_service.get_film_progress_for_user(user_id=user_id, film_id=film_id)
+    return orjson_response(progress, status=HTTPStatus.OK)

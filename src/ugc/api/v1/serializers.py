@@ -7,7 +7,7 @@ class FilmBookmarkList(Schema):
     id = fields.String()  # noqa: VNE003
     user_id = fields.UUID()
     film_id = fields.UUID()
-    bookmarked = fields.Boolean(default=True)
+    bookmarked = fields.Boolean(dump_default=True)
     bookmarked_at = fields.DateTime(format="%Y-%m-%d %H:%M:%S")
 
 

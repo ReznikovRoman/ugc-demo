@@ -32,7 +32,7 @@ track_film_progress = {
     "summary": "Установить прогресс фильма для пользователя.",
     "security": [{"JWT": []}],
     "responses": {
-        HTTPStatus.OK: {"description": "Прогресс фильма сохранен."},
+        HTTPStatus.ACCEPTED: {"description": "Прогресс фильма сохранен."},
         HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },

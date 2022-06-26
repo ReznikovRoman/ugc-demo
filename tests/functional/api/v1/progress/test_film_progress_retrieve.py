@@ -26,15 +26,15 @@ class TestFilmProgressRetrieve(AuthClientTest):
     async def test_latest_progress(self):
         """Если прогресс фильма обновлялся несколько раз, то клиент получит данные с последнего обновления."""
         url = f"/api/v1/users/me/progress/films/{VALID_FILM_ID}"
-        data_1 = {"viewed_frame": 500}
-        frame_2 = 1000
-        data_2 = {"viewed_frame": frame_2}
-        await self.client.post(url, data=data_1, expected_status_code=202)
-        await self.client.post(url, data=data_2, expected_status_code=202)
+        data_first = {"viewed_frame": 500}
+        frame_last = 1000
+        data_last = {"viewed_frame": frame_last}
+        await self.client.post(url, data=data_first, expected_status_code=202)
+        await self.client.post(url, data=data_last, expected_status_code=202)
 
         got = await self.client.get(url)
 
-        assert got["viewed_frame"] == frame_2
+        assert got["viewed_frame"] == frame_last
 
     async def test_not_found(self):
         """Если прогресса по данному фильму нет, то пользователь получит ошибку."""

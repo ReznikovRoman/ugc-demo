@@ -103,5 +103,5 @@ async def get_film_progress(
     """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
     user_id = get_user_id_from_jwt(request.headers)
-    progress = await progress_service.get_film_progress_for_user(user_id=user_id, film_id=film_id)
+    progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
     return orjson_response(progress, status=HTTPStatus.OK)

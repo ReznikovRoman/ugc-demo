@@ -36,7 +36,7 @@ class FilmProgressRepository(BaseRepository[UserFilmProgress]):
         Если объект прогресса уже есть в БД, то обновляем `viewed_frame` для него.
         Если объекта еще нет - создаем новый.
         """
-        obj, _ = await self.update_or_create(
+        await self.update_or_create(
             defaults={"viewed_frame": progress.viewed_frame},
             user_id=str(progress.user_id),
             film_id=str(progress.film_id),

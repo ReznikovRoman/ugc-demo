@@ -19,16 +19,7 @@ if TYPE_CHECKING:
     from ugc.domain.progress import ProgressService
 
 
-@docs(
-    tags=["bookmarks"],
-    summary="Добавить фильм в закладки.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.ACCEPTED: {"description": "Фильм добавлен в закладки пользователя."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
+@docs(**openapi.add_film_bookmark)
 async def add_film_bookmark(request: web.Request) -> web.Response:
     """Добавление фильма с `film_id` в закладки авторизованному пользователю."""
     film_id: UUID = request.match_info["film_id"]
@@ -38,19 +29,7 @@ async def add_film_bookmark(request: web.Request) -> web.Response:
     return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
-@docs(
-    summary="Получить список фильмов в закладках.",
-    tags=["bookmarks"],
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {
-            "description": "Список фильмов в закладках пользователя.",
-            "schema": openapi.FilmBookmarkList(many=True),
-        },
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
+@docs(**openapi.get_user_films_bookmarks)
 @inject
 async def get_user_films_bookmarks(
     request: web.Request, *,
@@ -62,16 +41,7 @@ async def get_user_films_bookmarks(
     return orjson_response(bookmarks, status=HTTPStatus.OK)
 
 
-@docs(
-    tags=["progress"],
-    summary="Установить прогресс фильма для пользователя.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {"description": "Прогресс фильма сохранен."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
+@docs(**openapi.track_film_progress)
 async def track_film_progress(request: web.Request) -> web.Response:
     """Сохранение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
@@ -81,20 +51,7 @@ async def track_film_progress(request: web.Request) -> web.Response:
     return orjson_response(status=HTTPStatus.OK)
 
 
-@docs(
-    tags=["progress"],
-    summary="Получить прогресс фильма для пользователя.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {
-            "description": "Прогресс фильма.",
-            "schema": openapi.FilmProgressDetail,
-        },
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.NOT_FOUND: {"description": "Прогресс для данного фильма не найден."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
+@docs(**openapi.get_film_progress)
 @inject
 async def get_film_progress(
     request: web.Request, *,

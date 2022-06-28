@@ -135,6 +135,10 @@ jobs:
     needs: [ build-and-push-image ]
     runs-on: ubuntu-latest
     steps:
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+        with:
+          state: all
       - name: Send telegram message on successful builds
         uses: appleboy/telegram-action@master
         with:
@@ -145,4 +149,4 @@ jobs:
 
             Repository: ${{ github.repository }}
 
-            See changes: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}
+            See changes: https://github.com/${{ github.repository }}/pull/${{ steps.findPr.outputs.pr }}

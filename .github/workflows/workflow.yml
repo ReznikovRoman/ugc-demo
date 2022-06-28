@@ -130,3 +130,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}, ${{ matrix.image }}:latest
           labels: ${{ steps.meta.outputs.labels }}
+
+  send-tg-message:
+    needs: [ build-and-push-image ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send telegram message on successful builds
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }}, build succeeded!:
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}

@@ -145,4 +145,4 @@ jobs:
 
             Repository: ${{ github.repository }}
 
-            See changes: https://github.com/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}
+            See changes: https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}

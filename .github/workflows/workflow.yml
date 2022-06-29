@@ -5,6 +5,9 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
   lint:
@@ -71,8 +74,8 @@ jobs:
           export NUGC_REDIS_HOST=redis
           export NUGC_REDIS_PORT=6379
           export NUGC_REDIS_MAIN_DB=0
-          export NUGC_REDIS_OM_URL=redis://@redis:6379
-          export REDIS_OM_URL=redis://@redis:6379
+          export NUGC_REDIS_OM_URL=redis://@localhost:6379
+          export REDIS_OM_URL=redis://@localhost:6379
           export NUGC_REDIS_DEFAULT_CHARSET=utf-8
           export NUGC_REDIS_DECODE_RESPONSES=1
           export NUGC_REDIS_RETRY_ON_TIMEOUT=1
@@ -127,3 +130,23 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}, ${{ matrix.image }}:latest
           labels: ${{ steps.meta.outputs.labels }}
+
+  send-tg-message:
+    needs: [ build-and-push-image ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+        with:
+          state: all
+      - name: Send telegram message on successful builds
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }}, build succeeded!:
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/pull/${{ steps.findPr.outputs.pr }}

@@ -1,4 +1,5 @@
 from contextlib import suppress
+from typing import Sequence
 
 from aioredis import RedisError
 from aredis_om import NotFoundError as RedisNotFoundError
@@ -23,14 +24,19 @@ class BookmarkRepository(BaseRepository[FilmBookmark]):
     async def create(self, bookmark: types.FilmBookmark, /) -> types.FilmBookmark:
         """Создание новой закладки."""
         data = bookmark.to_dict()
-        data.pop("id")
+        data.pop("id", None)
         data.pop("bookmarked")
         obj = await self.model(**data).save()
         bookmark.id = obj.pk
         return bookmark
 
+    async def get_by_user_id(self, user_id: str) -> list[types.FilmBookmark]:
+        """Получение списка закладок пользователя по его ID."""
+        bookmarks = await self.model.find(self.model.user_id == user_id).all()
+        return self._deserialize_sequence(bookmarks)
+
     async def get_by_film_id(self, *, user_id: str, film_id: str) -> types.FilmBookmark:
-        """Получение закладки пользователя по id фильма."""
+        """Получение закладки пользователя по ID фильма."""
         try:
             obj = await self.model.find(
                 (self.model.user_id == user_id) &
@@ -52,3 +58,17 @@ class BookmarkRepository(BaseRepository[FilmBookmark]):
                 (self.model.user_id == user_id) &
                 (self.model.film_id == film_id),
             ).delete()
+
+    def _deserialize_sequence(self, bookmarks: Sequence[FilmBookmark]) -> list[types.FilmBookmark]:
+        deserialized = [
+            self._factory.create_from_serialized(self._prepare_fields(bookmark))
+            for bookmark in bookmarks
+        ]
+        return deserialized
+
+    @staticmethod
+    def _prepare_fields(bookmark: FilmBookmark) -> dict:
+        data = bookmark.dict()
+        data["id"] = str(data.pop("pk"))
+        data["bookmarked"] = True
+        return data

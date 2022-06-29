@@ -4,117 +4,61 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from aiohttp_apispec import docs, request_schema
+from aiohttp_apispec import docs
 from dependency_injector.wiring import Provide, inject
-from marshmallow import Schema, fields
 
 from aiohttp import web
 
 from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
+from ugc.api.v1 import openapi
 from ugc.containers import Container
 
 if TYPE_CHECKING:
-    from ugc.domain.bookmarks import BookmarkDispatcherService
-    from ugc.domain.progress import ProgressDispatcherService
+    from ugc.domain.bookmarks import BookmarkService
+    from ugc.domain.progress import ProgressService
 
 
-@docs(
-    tags=["bookmarks"],
-    summary="Добавить фильм в закладки.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.ACCEPTED: {"description": "Фильм добавлен в закладки пользователя."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
-@inject
-async def add_film_bookmark(
-    request: web.Request,
-    bookmark_dispatcher_service: BookmarkDispatcherService = Provide[Container.bookmark_dispatcher_service],
-) -> web.Response:
+@docs(**openapi.add_film_bookmark)
+async def add_film_bookmark(request: web.Request) -> web.Response:
     """Добавление фильма с `film_id` в закладки авторизованному пользователю."""
     film_id: UUID = request.match_info["film_id"]
     user_id = get_user_id_from_jwt(request.headers)
-    bookmark = await bookmark_dispatcher_service.dispatch_bookmark_switch(
-        user_id=user_id, film_id=film_id, bookmarked=True)
-    if not bookmark:
-        return orjson_response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
+    print("user_id", user_id, "film_id", film_id)
     return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
-@docs(
-    summary="Получить список фильмов в закладках.",
-    tags=["bookmarks"],
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {"description": "Список фильмов в закладках пользователя."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
-async def get_user_films_bookmarks(request: web.Request) -> web.Response:
+@docs(**openapi.get_user_films_bookmarks)
+@inject
+async def get_user_films_bookmarks(
+    request: web.Request, *,
+    bookmark_service: BookmarkService = Provide[Container.bookmark_service],
+) -> web.Response:
     """Получение списка фильмов в закладках авторизованного пользователя."""
     user_id = get_user_id_from_jwt(request.headers)
-    # TODO: user_id нужен для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/10
-    print("user_id", user_id)
-    bookmark_films_list = {"XXX": "XXX"}
-    return orjson_response(bookmark_films_list, status=HTTPStatus.OK)
+    bookmarks = await bookmark_service.get_user_bookmarks(user_id)
+    return orjson_response(bookmarks, status=HTTPStatus.OK)
 
 
-class TrackFilmProgressRequestSchema(Schema):
-    viewed_frame = fields.Int()
-
-
-@docs(
-    tags=["progress"],
-    summary="Установить прогресс фильма для пользователя.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {"description": "Прогресс фильма сохранен."},
-        HTTPStatus.BAD_REQUEST: {"description": "Не передан прогресс."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
-@inject
-@request_schema(TrackFilmProgressRequestSchema())
-async def track_film_progress(
-    request: web.Request,
-    progress_dispatcher_service: ProgressDispatcherService = Provide[Container.progress_dispatcher_service],
-) -> web.Response:
+@docs(**openapi.track_film_progress)
+async def track_film_progress(request: web.Request) -> web.Response:
     """Сохранение прогресса фильма с `film_id` для авторизованного пользователя."""
-    user_id = get_user_id_from_jwt(request.headers)
-    film_id: UUID = request.match_info["film_id"]
-    viewed_frame: int = None
-    if request.body_exists:
-        body = await request.json()
-        if "viewed_frame" in body and body["viewed_frame"]:
-            viewed_frame = body["viewed_frame"]
-    if not viewed_frame:
-        return orjson_response(status=HTTPStatus.BAD_REQUEST)
-    progress = await progress_dispatcher_service.dispatch_progress_tracking(
-        user_id=user_id, film_id=film_id, viewed_frame=viewed_frame)
-    if not progress:
-        return orjson_response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    return orjson_response(status=HTTPStatus.OK)
-
-
-@docs(
-    tags=["progress"],
-    summary="Получить прогресс фильма для пользователя.",
-    security=[{"JWT": []}],
-    responses={
-        HTTPStatus.OK: {"description": "Прогресс фильма."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
-    },
-)
-async def get_film_progress(request: web.Request) -> web.Response:
-    """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
     user_id = get_user_id_from_jwt(request.headers)
     print("user_id", user_id, "film_id", film_id)
-    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/10
+    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
     return orjson_response(status=HTTPStatus.OK)
+
+
+@docs(**openapi.get_film_progress)
+@inject
+async def get_film_progress(
+    request: web.Request, *,
+    progress_service: ProgressService = Provide[Container.progress_service],
+) -> web.Response:
+    """Получение прогресса фильма с `film_id` для авторизованного пользователя."""
+    film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
+    progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
+    return orjson_response(progress, status=HTTPStatus.OK)

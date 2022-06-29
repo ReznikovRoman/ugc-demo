@@ -83,12 +83,18 @@ class Container(containers.DeclarativeContainer):
 
     progress_repository = providers.Singleton(
         progress.FilmProgressRepository,
+        progress_factory=progress_factory,
+    )
+
+    progress_service = providers.Singleton(
+        progress.ProgressService,
+        progress_repository=progress_repository,
     )
 
     progress_processor = providers.Singleton(
         progress.ProgressProcessor,
         progress_factory=progress_factory,
-        progress_repository=progress_repository,
+        progress_service=progress_service,
     )
 
     progress_dispatcher_service = providers.Factory(

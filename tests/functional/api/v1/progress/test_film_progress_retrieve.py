@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from tests.functional.api.constants import VALID_FILM_ID
@@ -17,7 +19,7 @@ class TestFilmProgressRetrieve(AuthClientTest):
         url = f"/api/v1/users/me/progress/films/{VALID_FILM_ID}"
         frame = 1000
         data = {"viewed_frame": frame}
-        await self.client.post(url, data=data, expected_status_code=202)
+        await self.client.post(url, json=data, expected_status_code=202)
 
         got = await self.client.get(url)
 
@@ -29,8 +31,10 @@ class TestFilmProgressRetrieve(AuthClientTest):
         data_first = {"viewed_frame": 500}
         frame_last = 1000
         data_last = {"viewed_frame": frame_last}
-        await self.client.post(url, data=data_first, expected_status_code=202)
-        await self.client.post(url, data=data_last, expected_status_code=202)
+        await asyncio.gather(
+            self.client.post(url, json=data_first, expected_status_code=202),
+            self.client.post(url, json=data_last, expected_status_code=202),
+        )
 
         got = await self.client.get(url)
 

@@ -13,6 +13,17 @@ add_film_bookmark = {
     },
 }
 
+delete_film_bookmark = {
+    "tags": ["bookmarks"],
+    "summary": "Удалить фильм из закладок.",
+    "security": [{"JWT": []}],
+    "responses": {
+        HTTPStatus.ACCEPTED: {"description": "Фильм удален из закладок пользователя."},
+        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}
+
 get_user_films_bookmarks = {
     "tags": ["bookmarks"],
     "summary": "Получить список фильмов в закладках.",

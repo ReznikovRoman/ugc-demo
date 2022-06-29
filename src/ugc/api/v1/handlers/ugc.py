@@ -4,7 +4,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from aiohttp_apispec import docs
+from aiohttp_apispec import docs, request_schema
 from dependency_injector.wiring import Provide, inject
 
 from aiohttp import web
@@ -12,20 +12,33 @@ from aiohttp import web
 from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
 from ugc.api.v1 import openapi
+from ugc.api.v1.serializers import FilmProgressCreate
 from ugc.containers import Container
 
 if TYPE_CHECKING:
-    from ugc.domain.bookmarks import BookmarkService
-    from ugc.domain.progress import ProgressService
+    from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
+    from ugc.domain.progress import ProgressDispatcherService, ProgressService
 
 
 @docs(**openapi.add_film_bookmark)
-async def add_film_bookmark(request: web.Request) -> web.Response:
+@inject
+async def add_film_bookmark(
+    request: web.Request, *,
+    bookmark_dispatcher: BookmarkDispatcherService = Provide[Container.bookmark_dispatcher_service],
+) -> web.Response:
     """Добавление фильма с `film_id` в закладки авторизованному пользователю."""
-    film_id: UUID = request.match_info["film_id"]
-    user_id = get_user_id_from_jwt(request.headers)
-    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
-    print("user_id", user_id, "film_id", film_id)
+    await _handle_film_bookmark(request, bookmark_dispatcher, bookmarked=True)
+    return orjson_response(status=HTTPStatus.ACCEPTED)
+
+
+@docs(**openapi.delete_film_bookmark)
+@inject
+async def delete_film_bookmark(
+    request: web.Request, *,
+    bookmark_dispatcher: BookmarkDispatcherService = Provide[Container.bookmark_dispatcher_service],
+) -> web.Response:
+    """Удаление фильма с `film_id` из закладок авторизованного пользователя."""
+    await _handle_film_bookmark(request, bookmark_dispatcher, bookmarked=False)
     return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
@@ -42,13 +55,19 @@ async def get_user_films_bookmarks(
 
 
 @docs(**openapi.track_film_progress)
-async def track_film_progress(request: web.Request) -> web.Response:
+@request_schema(FilmProgressCreate)
+@inject
+async def track_film_progress(
+    request: web.Request, *,
+    progress_dispatcher: ProgressDispatcherService = Provide[Container.progress_dispatcher_service],
+) -> web.Response:
     """Сохранение прогресса фильма с `film_id` для авторизованного пользователя."""
     film_id: UUID = request.match_info["film_id"]
     user_id = get_user_id_from_jwt(request.headers)
-    print("user_id", user_id, "film_id", film_id)
-    # TODO: user_id, film_id нужны для задачи https://github.com/ReznikovRoman/netflix-ugc/issues/9
-    return orjson_response(status=HTTPStatus.OK)
+    validated_data = request["data"]
+    viewed_frame = validated_data["viewed_frame"]
+    await progress_dispatcher.dispatch_progress_tracking(user_id=user_id, film_id=film_id, viewed_frame=viewed_frame)
+    return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
 @docs(**openapi.get_film_progress)
@@ -62,3 +81,13 @@ async def get_film_progress(
     user_id = get_user_id_from_jwt(request.headers)
     progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
     return orjson_response(progress, status=HTTPStatus.OK)
+
+
+async def _handle_film_bookmark(
+    request: web.Request,
+    bookmark_dispatcher: BookmarkDispatcherService, *,
+    bookmarked: bool,
+) -> None:
+    film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
+    await bookmark_dispatcher.dispatch_bookmark_switch(user_id=user_id, film_id=film_id, bookmarked=bookmarked)

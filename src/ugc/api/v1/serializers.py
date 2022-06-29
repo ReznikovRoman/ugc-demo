@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields
+from marshmallow.validate import Range
 
 
 class FilmBookmarkList(Schema):
@@ -9,6 +10,13 @@ class FilmBookmarkList(Schema):
     film_id = fields.UUID()
     bookmarked = fields.Boolean(dump_default=True)
     bookmarked_at = fields.DateTime(format="%Y-%m-%d %H:%M:%S")
+
+
+class FilmProgressCreate(Schema):
+    """Сериалайзер для трекинга прогресса фильма."""
+
+    viewed_frame = fields.Integer(
+        strict=True, required=True, validate=[Range(min=1, error="Viewed frame must be greater than 0")])
 
 
 class FilmProgressDetail(Schema):

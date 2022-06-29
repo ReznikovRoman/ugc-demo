@@ -10,6 +10,10 @@ def setup_routes_v1(app: web.Application) -> None:
             path="/users/me/bookmarks/films/{film_id}",
             handler=ugc.add_film_bookmark,
         ),
+        web.delete(
+            path="/users/me/bookmarks/films/{film_id}",
+            handler=ugc.delete_film_bookmark,
+        ),
         web.get(
             path="/users/me/bookmarks/films",
             handler=ugc.get_user_films_bookmarks,

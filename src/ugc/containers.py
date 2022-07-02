@@ -150,12 +150,7 @@ def override_providers(container: Container) -> Container:
     if not container.config.USE_STUBS():
         return container
 
-    container.kafka_producer_client.override(providers.Resource(dummy_resource))
-    container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
-    container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
-    container.kafka_producer.override(sentinel)
-    container.kafka_bookmark_consumer.override(sentinel)
-    container.kafka_progress_consumer.override(sentinel)
+    _override_with_dummy_resources(container)
 
     progress_processor = providers.Singleton(
         InMemoryProcessor,
@@ -184,4 +179,14 @@ async def get_processors(container: Container) -> list[processors.ProcessorServi
 
 
 async def dummy_resource() -> None:
-    ...
+    """Функция-ресурс для перезаписи в DI контейнере."""
+
+
+def _override_with_dummy_resources(container: Container) -> Container:
+    container.kafka_producer_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
+    container.kafka_producer.override(sentinel)
+    container.kafka_bookmark_consumer.override(sentinel)
+    container.kafka_progress_consumer.override(sentinel)
+    return container

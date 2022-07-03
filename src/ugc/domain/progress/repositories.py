@@ -1,14 +1,14 @@
 from aredis_om import NotFoundError as RedisNotFoundError
 
 from ugc.common.exceptions import NotFoundError
-from ugc.infrastructure.db.repositories import BaseRepository
+from ugc.infrastructure.db.repositories import BaseRedisRepository
 
 from .factories import FilmProgressFactory
 from .models import UserFilmProgress
 from .types import FilmProgress
 
 
-class FilmProgressRepository(BaseRepository[UserFilmProgress]):
+class FilmProgressRepository(BaseRedisRepository[UserFilmProgress]):
     """Репозиторий для работы с данными прогресса фильма."""
 
     model = UserFilmProgress

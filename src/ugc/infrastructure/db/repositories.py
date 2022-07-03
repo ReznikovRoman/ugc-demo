@@ -14,7 +14,7 @@ class ModelInfo(NamedTuple):
     created: bool
 
 
-class BaseRepository(Generic[_RM]):
+class BaseRedisRepository(Generic[_RM]):
     """Базовый репозиторий для работы с данными модели `RedisModel`."""
 
     model: Type[_RM]

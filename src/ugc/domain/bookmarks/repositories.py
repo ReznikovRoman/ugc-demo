@@ -5,14 +5,14 @@ from aioredis import RedisError
 from aredis_om import NotFoundError as RedisNotFoundError
 
 from ugc.common.exceptions import NotFoundError
-from ugc.infrastructure.db.repositories import BaseRepository
+from ugc.infrastructure.db.repositories import BaseRedisRepository
 
 from . import types
 from .factories import FilmBookmarkFactory
 from .models import FilmBookmark
 
 
-class BookmarkRepository(BaseRepository[FilmBookmark]):
+class BookmarkRepository(BaseRedisRepository[FilmBookmark]):
     """Репозиторий для работы с данными закладок."""
 
     model = FilmBookmark

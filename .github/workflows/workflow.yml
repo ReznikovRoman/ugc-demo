@@ -79,6 +79,11 @@ jobs:
           export NUGC_REDIS_DEFAULT_CHARSET=utf-8
           export NUGC_REDIS_DECODE_RESPONSES=1
           export NUGC_REDIS_RETRY_ON_TIMEOUT=1
+          export NUGC_MONGODB_USER=test
+          export NUGC_MONGODB_PASSWORD=yandex
+          export NUGC_MONGODB_NAME=netflix-ugc
+          export NUGC_MONGOEXPRESS_LOGIN=admin
+          export NUGC_MONGOEXPRESS_PASSWORD=pass
           export NUGC_QUEUE_PROGRESS_NAME=progress-topic
           export NUGC_QUEUE_PROGRESS_GROUP=progress-group
           export NUGC_QUEUE_PROGRESS_CONSUMERS=2

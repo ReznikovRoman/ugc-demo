@@ -23,10 +23,29 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ugc_api.rule=Host(`api-ugc.localhost`,`traefik`)"
       - "traefik.http.routers.ugc_api.entrypoints=ugc"
+
+  mongodb:
+    image: mongo:5.0
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${NUGC_MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${NUGC_MONGODB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${NUGC_MONGODB_NAME}
+      - MONGODB_DATA_DIR=/data/db
+      - MONDODB_LOG_DIR=/dev/null
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb:27017/${NUGC_MONGODB_NAME} --quiet || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
 
   redis:
     image: redis/redis-stack-server:7.0.0-RC5
@@ -122,6 +141,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+      mongodb:
+        condition: service_healthy
       server-auth:
         condition: service_healthy
       db-auth:

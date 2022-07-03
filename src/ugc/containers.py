@@ -5,7 +5,7 @@ from dependency_injector import containers, providers
 
 from ugc.domain import bookmarks, processors, progress
 from ugc.helpers import sentinel
-from ugc.infrastructure.db import redis
+from ugc.infrastructure.db import mongo, redis
 from ugc.infrastructure.queue import consumers, producers
 from ugc.infrastructure.queue.stubs import InMemoryProcessor, InMemoryQueue
 
@@ -30,6 +30,11 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Infrastructure
+
+    mongo_client = providers.Resource(
+        mongo.init_mongo,
+        url=config.MONGODB_URL,
+    )
 
     redis_client = providers.Resource(
         redis.init_redis,

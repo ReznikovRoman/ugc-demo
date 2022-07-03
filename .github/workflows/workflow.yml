@@ -82,6 +82,8 @@ jobs:
           export NUGC_MONGODB_USER=test
           export NUGC_MONGODB_PASSWORD=yandex
           export NUGC_MONGODB_NAME=netflix-ugc
+          export NUGC_MONGODB_HOST=mongodb
+          export NUGC_MONGODB_PORT=27017
           export NUGC_MONGOEXPRESS_LOGIN=admin
           export NUGC_MONGOEXPRESS_PASSWORD=pass
           export NUGC_QUEUE_PROGRESS_NAME=progress-topic

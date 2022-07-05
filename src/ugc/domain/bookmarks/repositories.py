@@ -5,21 +5,28 @@ from aioredis import RedisError
 from aredis_om import NotFoundError as RedisNotFoundError
 
 from ugc.common.exceptions import NotFoundError
-from ugc.infrastructure.db.repositories import BaseRedisRepository
+from ugc.infrastructure.db.repositories import RedisRepository
 
 from . import types
 from .factories import FilmBookmarkFactory
 from .models import FilmBookmark
 
 
-class BookmarkRepository(BaseRedisRepository[FilmBookmark]):
+class BookmarkRepository:
     """Репозиторий для работы с данными закладок."""
 
     model = FilmBookmark
 
-    def __init__(self, bookmark_factory: FilmBookmarkFactory) -> None:
+    def __init__(
+        self,
+        bookmark_factory: FilmBookmarkFactory,
+        redis_repository: RedisRepository[FilmBookmark],
+    ) -> None:
         assert isinstance(bookmark_factory, FilmBookmarkFactory)
         self._factory = bookmark_factory
+
+        assert isinstance(redis_repository, RedisRepository)
+        self._redis_repository = redis_repository
 
     async def create(self, bookmark: types.FilmBookmark, /) -> types.FilmBookmark:
         """Создание новой закладки."""

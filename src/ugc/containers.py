@@ -4,8 +4,10 @@ import orjson
 from dependency_injector import containers, providers
 
 from ugc.domain import bookmarks, processors, progress
+from ugc.domain.bookmarks.models import FilmBookmark
+from ugc.domain.progress.models import UserFilmProgress
 from ugc.helpers import sentinel
-from ugc.infrastructure.db import mongo, redis
+from ugc.infrastructure.db import mongo, redis, repositories
 from ugc.infrastructure.queue import consumers, producers
 from ugc.infrastructure.queue.stubs import InMemoryProcessor, InMemoryQueue
 
@@ -39,6 +41,11 @@ class Container(containers.DeclarativeContainer):
     redis_client = providers.Resource(
         redis.init_redis,
         url=config.REDIS_OM_URL,
+    )
+
+    redis_repository_factory = providers.Factory(
+        providers.Factory,
+        repositories.RedisRepository,
     )
 
     kafka_producer_client = providers.Resource(
@@ -89,6 +96,7 @@ class Container(containers.DeclarativeContainer):
     progress_repository = providers.Singleton(
         progress.FilmProgressRepository,
         progress_factory=progress_factory,
+        redis_repository=redis_repository_factory(model=UserFilmProgress),
     )
 
     progress_service = providers.Singleton(
@@ -123,6 +131,7 @@ class Container(containers.DeclarativeContainer):
     bookmark_repository = providers.Singleton(
         bookmarks.BookmarkRepository,
         bookmark_factory=bookmark_factory,
+        redis_repository=redis_repository_factory(model=FilmBookmark),
     )
 
     bookmark_service = providers.Singleton(
@@ -152,6 +161,7 @@ class Container(containers.DeclarativeContainer):
 
 
 def override_providers(container: Container) -> Container:
+    """Перезаписывание провайдеров с помощью стабов."""
     if not container.config.USE_STUBS():
         return container
 

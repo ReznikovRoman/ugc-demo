@@ -3,7 +3,7 @@ import logging.config
 import orjson
 from dependency_injector import containers, providers
 
-from ugc.domain import bookmarks, processors, progress
+from ugc.domain import bookmarks, processors, progress, reviews
 from ugc.domain.bookmarks.models import FilmBookmark
 from ugc.domain.progress.models import UserFilmProgress
 from ugc.helpers import sentinel
@@ -157,6 +157,15 @@ class Container(containers.DeclarativeContainer):
         consumer=kafka_bookmark_consumer,
         concurrency=config.QUEUE_BOOKMARKS_CONSUMERS,
         message_callback=bookmark_processor,
+    )
+
+    # Domain -> Reviews
+
+    review_repository = providers.Singleton(reviews.ReviewRepository)
+
+    review_service = providers.Factory(
+        reviews.ReviewService,
+        review_repository=review_repository,
     )
 
 

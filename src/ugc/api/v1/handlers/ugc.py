@@ -11,13 +11,13 @@ from aiohttp import web
 
 from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
-from ugc.api.v1 import openapi
-from ugc.api.v1.serializers import FilmProgressCreate
+from ugc.api.v1 import openapi, serializers
 from ugc.containers import Container
 
 if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
     from ugc.domain.progress import ProgressDispatcherService, ProgressService
+    from ugc.domain.reviews import ReviewService
 
 
 @docs(**openapi.add_film_bookmark)
@@ -55,7 +55,7 @@ async def get_user_films_bookmarks(
 
 
 @docs(**openapi.track_film_progress)
-@request_schema(FilmProgressCreate)
+@request_schema(serializers.FilmProgressCreate)
 @inject
 async def track_film_progress(
     request: web.Request, *,
@@ -81,6 +81,20 @@ async def get_film_progress(
     user_id = get_user_id_from_jwt(request.headers)
     progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
     return orjson_response(progress, status=HTTPStatus.OK)
+
+
+@docs(**openapi.create_film_review)
+@request_schema(serializers.FilmReviewCreate)
+@inject
+async def create_film_review(
+    request: web.Request, *,
+    review_service: ReviewService = Provide[Container.review_service],
+) -> web.Response:
+    """Создание новой рецензии на фильм от авторизированного пользователя."""
+    film_id: UUID = request.match_info["film_id"]  # noqa: F841
+    user_id = get_user_id_from_jwt(request.headers)  # noqa: F841
+    review = await review_service.create_review()
+    return orjson_response(review, status=HTTPStatus.CREATED)
 
 
 async def _handle_film_bookmark(

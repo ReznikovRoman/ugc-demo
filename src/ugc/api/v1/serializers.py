@@ -25,3 +25,20 @@ class FilmProgressDetail(Schema):
     user_id = fields.UUID()
     film_id = fields.UUID()
     viewed_frame = fields.Integer()
+
+
+class FilmReviewCreate(Schema):
+    """Сериалайзер для создания рецензии на фильм."""
+
+    title = fields.Str(strict=True, required=True)
+    review = fields.Str(strict=True, required=True)
+
+
+class FilmReviewDetail(Schema):
+    """Сериалайзер рецензии на фильм."""
+
+    id = fields.Str()  # noqa: VNE003
+    user_id = fields.UUID()
+    film_id = fields.UUID()
+    title = fields.Str()
+    review = fields.Str()

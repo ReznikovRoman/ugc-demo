@@ -91,9 +91,11 @@ async def create_film_review(
     review_service: ReviewService = Provide[Container.review_service],
 ) -> web.Response:
     """Создание новой рецензии на фильм от авторизированного пользователя."""
-    film_id: UUID = request.match_info["film_id"]  # noqa: F841
-    user_id = get_user_id_from_jwt(request.headers)  # noqa: F841
-    review = await review_service.create_review()
+    data = request["data"]
+    film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
+    review = await review_service.create_review(
+        user_id=user_id, film_id=film_id, title=data["title"], review_text=data["review"])
     return orjson_response(review, status=HTTPStatus.CREATED)
 
 

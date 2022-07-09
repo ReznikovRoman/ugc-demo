@@ -85,7 +85,7 @@ class Settings(BaseSettings):
         host = values["MONGODB_HOST"]
         port = values["MONGODB_PORT"]
         database = values["MONGODB_NAME"]
-        return f"mongodb://{user}:{password}@{host}:{port}/{database}"
+        return f"mongodb://{user}:{password}@{host}:{port}/{database}?authSource=admin"
 
 
 @lru_cache()

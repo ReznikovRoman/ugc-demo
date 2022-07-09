@@ -42,3 +42,4 @@ class FilmReviewDetail(Schema):
     film_id = fields.UUID()
     title = fields.Str()
     review = fields.Str()
+    created_at = fields.DateTime()

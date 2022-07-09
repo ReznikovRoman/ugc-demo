@@ -1,3 +1,5 @@
+import datetime
+
 from ..factories import BaseModelFactory
 from .types import FilmReview
 
@@ -10,5 +12,5 @@ class FilmReviewFactory(BaseModelFactory[FilmReview]):
     def create_new(self, **kwargs) -> FilmReview:
         return self.cls(
             user_id=kwargs["user_id"], film_id=kwargs["film_id"],
-            title=kwargs["title"], review=kwargs["review"],
+            title=kwargs["title"], review=kwargs["review"], created_at=datetime.datetime.now(),
         )

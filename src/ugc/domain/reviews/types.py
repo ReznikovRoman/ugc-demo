@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 from uuid import UUID
 
@@ -11,6 +12,7 @@ class FilmReview(BaseModel):
     film_id: UUID
     title: str
     review: str
+    created_at: datetime.datetime
 
     id: bytes | str | None = None  # noqa: VNE003
 
@@ -18,7 +20,7 @@ class FilmReview(BaseModel):
     def from_dict(cls, data: dict) -> "FilmReview":
         dct = {
             "user_id": data["user_id"], "film_id": data["film_id"],
-            "title": data["title"], "review": data["review"],
+            "title": data["title"], "review": data["review"], "created_at": data["created_at"],
         }
         if review_id := data.get("id"):
             dct["id"] = review_id
@@ -27,7 +29,7 @@ class FilmReview(BaseModel):
     def to_dict(self) -> dict[str, Any]:
         dct = {
             "user_id": str(self.user_id), "film_id": str(self.film_id),
-            "title": self.title, "review": self.review,
+            "title": self.title, "review": self.review, "created_at": self.created_at,
         }
         if self.id:
             dct["id"] = str(self.id)

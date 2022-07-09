@@ -161,10 +161,16 @@ class Container(containers.DeclarativeContainer):
 
     # Domain -> Reviews
 
-    review_repository = providers.Singleton(reviews.ReviewRepository)
+    review_factory = providers.Factory(reviews.FilmReviewFactory)
+
+    review_repository = providers.Singleton(
+        reviews.ReviewRepository,
+        db=mongo_client,
+    )
 
     review_service = providers.Factory(
         reviews.ReviewService,
+        review_factory=review_factory,
         review_repository=review_repository,
     )
 

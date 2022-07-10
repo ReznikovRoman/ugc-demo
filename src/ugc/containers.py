@@ -7,6 +7,7 @@ from dependency_injector import containers, providers
 from ugc.domain import bookmarks, processors, progress, reviews
 from ugc.domain.bookmarks.models import FilmBookmark
 from ugc.domain.progress.models import UserFilmProgress
+from ugc.domain.reviews.constants import REVIEWS_COLLECTION_NAME
 from ugc.helpers import sentinel
 from ugc.infrastructure.db import mongo, redis, repositories
 from ugc.infrastructure.queue import consumers, producers
@@ -172,7 +173,9 @@ class Container(containers.DeclarativeContainer):
 
     review_repository = providers.Singleton(
         reviews.ReviewRepository,
+        mongo_repository=mongo_repository_factory(factory=review_factory, collection_name=REVIEWS_COLLECTION_NAME),
         db=mongo_client,
+        review_factory=review_factory,
     )
 
     review_service = providers.Factory(

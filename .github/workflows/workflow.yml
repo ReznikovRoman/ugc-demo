@@ -44,6 +44,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      mongodb:
+        image: mongo:5.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: yandex
+          MONGO_INITDB_DATABASE: ugc_test
+        ports:
+          - 27017:27017
+        options: >-
+          --entrypoint "mongod --auth"
+          --health-cmd "echo 'db.runCommand("ping").ok' | mongo mongodb:27017/ugc_test --quiet || exit 1"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10
@@ -81,8 +95,8 @@ jobs:
           export NUGC_REDIS_RETRY_ON_TIMEOUT=1
           export NUGC_MONGODB_USER=test
           export NUGC_MONGODB_PASSWORD=yandex
-          export NUGC_MONGODB_NAME=netflix-ugc
-          export NUGC_MONGODB_HOST=mongodb
+          export NUGC_MONGODB_NAME=ugc_test
+          export NUGC_MONGODB_HOST=localhost
           export NUGC_MONGODB_PORT=27017
           export NUGC_MONGOEXPRESS_LOGIN=admin
           export NUGC_MONGOEXPRESS_PASSWORD=pass

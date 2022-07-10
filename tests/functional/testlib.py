@@ -4,11 +4,14 @@ from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import urljoin
 
 import aioredis
+import motor.motor_asyncio
 import orjson
 from aredis_om import Migrator
 
 import aiohttp
 from aiohttp import ClientSession
+
+from ugc.infrastructure.db.mongo import configure_db
 
 from .settings import get_settings
 
@@ -132,3 +135,18 @@ async def run_redis_migrations() -> None:
 async def flush_redis() -> None:
     redis_client = aioredis.from_url(settings.REDIS_OM_URL)
     await redis_client.flushdb()
+
+
+async def flush_mongo() -> None:
+    mongo_client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL)
+    mongo_default_db = mongo_client.get_default_database()
+    collections_filter = {"name": {"$regex": r"^(?!system\.)"}}
+    collection_names = await mongo_default_db.list_collection_names(filter=collections_filter)
+    for collection_name in collection_names:
+        await mongo_default_db.drop_collection(collection_name)
+
+
+async def setup_mongo() -> None:
+    mongo_client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGODB_URL)
+    mongo_default_db = mongo_client.get_default_database()
+    await configure_db(mongo_default_db)

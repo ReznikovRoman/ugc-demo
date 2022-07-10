@@ -4,7 +4,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from aiohttp_apispec import docs, request_schema
+from aiohttp_apispec import docs, querystring_schema, request_schema
 from dependency_injector.wiring import Provide, inject
 
 from aiohttp import web
@@ -97,6 +97,22 @@ async def create_film_review(
     review = await review_service.create_review(
         user_id=user_id, film_id=film_id, title=data["title"], review_text=data["review"])
     return orjson_response(review, status=HTTPStatus.CREATED)
+
+
+@docs(**openapi.get_film_reviews)
+@querystring_schema(serializers.CursorPaginationQueryParams)
+@inject
+async def get_film_reviews(
+    request: web.Request, *,
+    review_service: ReviewService = Provide[Container.review_service],
+) -> web.Response:
+    """Получение списка рецензий на фильм с пагинацией."""
+    film_id: UUID = request.match_info["film_id"]
+    query_params: dict = request["querystring"]
+    reviews, cursor = await review_service.get_film_reviews(
+        film_id, limit=query_params.get("limit"), cursor=query_params.get("cursor"))
+    response = {"cursor": cursor, "data": reviews}
+    return orjson_response(response, status=HTTPStatus.OK)
 
 
 async def _handle_film_bookmark(

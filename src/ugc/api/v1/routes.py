@@ -36,6 +36,11 @@ def setup_routes_v1(app: web.Application) -> None:
             path="/users/me/reviews/films/{film_id}",
             handler=ugc.create_film_review,
         ),
+        web.get(
+            path="/reviews/films/{film_id}",
+            handler=ugc.get_film_reviews,
+            allow_head=False,
+        ),
 
         # Miscellaneous
         web.get(

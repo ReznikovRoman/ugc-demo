@@ -78,3 +78,15 @@ create_film_review = {
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 }
+
+get_film_reviews = {
+    "tags": ["review"],
+    "summary": "Получить список пользовательских рецензий на фильм.",
+    "responses": {
+        HTTPStatus.OK: {
+            "description": "Список рецензий с пагинацией.",
+            "schema": serializers.FilmReviewList,
+        },
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}

@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     REDIS_RETRY_ON_TIMEOUT: bool = True
     REDIS_KEY_PREFIX: str = Field("ugc")
 
-    # Redis
+    # MongoDB
     MONGODB_USER: str
     MONGODB_PASSWORD: str
     MONGODB_NAME: str

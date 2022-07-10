@@ -1,4 +1,5 @@
 import logging.config
+from functools import partial
 
 import orjson
 from dependency_injector import containers, providers
@@ -46,6 +47,12 @@ class Container(containers.DeclarativeContainer):
     redis_repository_factory = providers.Factory(
         providers.Factory,
         repositories.RedisRepository,
+    )
+
+    mongo_repository_factory = partial(
+        providers.Factory,
+        provides=repositories.MongoRepository,
+        db=mongo_client,
     )
 
     kafka_producer_client = providers.Resource(

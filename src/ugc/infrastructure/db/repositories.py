@@ -1,12 +1,22 @@
 import functools
 from operator import and_
-from typing import Generic, Type, TypeVar
+from typing import Any, Generic, Type, TypeVar
 
 from aredis_om.model.model import NotFoundError, RedisModel
+from bson import ObjectId
+from pymongo import ASCENDING
 
+from ugc.domain.factories import BaseModelFactory
+from ugc.domain.types import BaseModel
 from ugc.helpers import resolve_callables
 
+from .clients import MongoCollectionClient, MongoDatabaseClient
+from .types import PaginationCursor
+
 _RM = TypeVar("_RM", bound=RedisModel)
+_BM = TypeVar("_BM", bound=BaseModel)
+
+MongoResult = dict[str, Any]
 
 
 class RedisRepository(Generic[_RM]):
@@ -72,3 +82,64 @@ class RedisRepository(Generic[_RM]):
         params = {k: v for k, v in kwargs.items()}
         params.update(defaults)
         return params
+
+
+class MongoRepository(Generic[_BM]):
+    """Репозиторий для работы с данными из MongoDB."""
+
+    def __init__(self, db: MongoDatabaseClient, factory: BaseModelFactory, collection_name: str) -> None:
+        assert isinstance(db, MongoDatabaseClient)
+        self._db = db
+
+        assert isinstance(factory, BaseModelFactory)
+        self._factory = factory
+
+        assert isinstance(collection_name, str)
+        self._collection_name = collection_name
+
+    @property
+    def collection(self) -> MongoCollectionClient:
+        return self._db[self._collection_name]
+
+    def get_paginated_results_iter(
+        self, *,
+        limit: int,
+        cursor: PaginationCursor = None,
+        ordering: tuple[str, int] | None = None, filter_query: dict | None = None, pagination_query: dict | None = None,
+    ):
+        """Получение итератора по результатам с пагинацией."""
+        if ordering is None:
+            ordering = ("_id", ASCENDING)
+        if pagination_query is None:
+            pagination_query = {"_id": {"$gt": ObjectId(cursor)}}
+
+        if cursor is None:
+            return self.collection.find(filter_query).limit(limit).sort(*ordering)
+        filter_query.update(pagination_query)
+        return self.collection.find(filter_query).limit(limit).sort(*ordering)
+
+    async def get_paginated_results(
+        self, *,
+        limit: int,
+        cursor: PaginationCursor = None, cursor_field: str,
+        ordering: tuple[str, int] | None = None, filter_query: dict | None = None, pagination_query: dict | None = None,
+    ) -> tuple[list[_BM], PaginationCursor]:
+        """Получение списка документов с использованием `cursor-based` пагинации."""
+        raw_results = self.get_paginated_results_iter(
+            limit=limit, cursor=cursor, ordering=ordering, filter_query=filter_query, pagination_query=pagination_query)
+        results = [
+            self._factory.create_from_serialized(self.fix_id_field(raw_result))
+            async for raw_result in raw_results
+        ]
+
+        if not results:
+            return [], None
+
+        new_cursor = results[-1].__getattribute__(cursor_field)
+        return results, new_cursor
+
+    @staticmethod
+    def fix_id_field(data: MongoResult) -> MongoResult:
+        """Переименование поля `_id`."""
+        data["id"] = str(data.pop("_id"))
+        return data

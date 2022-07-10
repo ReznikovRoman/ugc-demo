@@ -1,0 +1,1 @@
+PaginationCursor = str | None

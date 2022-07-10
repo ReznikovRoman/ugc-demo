@@ -31,13 +31,16 @@ class APIClient(ClientSession):
     def __init__(
         self,
         base_url: str | None = settings.SERVER_BASE_URL,
-        use_authorization: bool | None = False,
+        use_authorization: bool | None = False, user_email: str | None = None,
         *args, **kwargs,
     ):
         super().__init__(base_url, *args, **kwargs)
         self.base_url = base_url
         self.use_authorization = use_authorization
         self.auth_url = settings.NETFLIX_AUTH_BASE_URL
+        if user_email is None:
+            user_email = "test@gmail.com"
+        self.user_email = user_email
 
     async def _request(self, method, url, *args, **kwargs):
         headers = kwargs.pop("headers", {})
@@ -102,7 +105,7 @@ class APIClient(ClientSession):
         return await self._get_access_token()
 
     async def _get_access_token(self) -> str:
-        body = {"email": "test@gmail.com", "password": "pass"}
+        body = {"email": self.user_email, "password": "pass"}
         async with aiohttp.ClientSession() as session:
             async with session.post(urljoin(self.auth_url, "/api/v1/auth/register"), data=body):
                 ...
@@ -118,8 +121,8 @@ def create_anon_client() -> APIClient:
     return APIClient(base_url=settings.CLIENT_BASE_URL)
 
 
-def create_auth_client() -> APIClient:
-    return APIClient(base_url=settings.CLIENT_BASE_URL, use_authorization=True)
+def create_auth_client(user_email: str | None = None) -> APIClient:
+    return APIClient(base_url=settings.CLIENT_BASE_URL, use_authorization=True, user_email=user_email)
 
 
 async def run_redis_migrations() -> None:

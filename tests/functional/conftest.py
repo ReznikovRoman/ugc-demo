@@ -39,6 +39,13 @@ async def auth_client() -> APIClient:
     await auth_client_.close()
 
 
+@pytest.fixture(scope="session")
+async def another_auth_client() -> APIClient:
+    auth_client_ = create_auth_client(user_email="another@gmail.com")
+    yield auth_client_
+    await auth_client_.close()
+
+
 @pytest.fixture
 def settings() -> Test:
     return settings_

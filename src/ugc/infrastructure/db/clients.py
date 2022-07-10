@@ -1,5 +1,5 @@
-from motor.core import AgnosticCollection, AgnosticDatabase
-from pymongo import results
+from motor.core import AgnosticCollection, AgnosticCursor, AgnosticDatabase
+from pymongo import results as mongo_results
 
 
 class MongoDatabaseClient:
@@ -36,7 +36,11 @@ class MongoCollectionClient:
         assert isinstance(collection_client, AgnosticCollection)
         self._client = collection_client
 
-    async def insert_one(self, document: dict) -> results.InsertOneResult:
+    async def insert_one(self, document: dict) -> mongo_results.InsertOneResult:
         """Добавление одного документа в коллекцию."""
         result = await self._client.insert_one(document)
         return result
+
+    def find(self, *args, **kwargs) -> AgnosticCursor:
+        """Поиск документов в БД."""
+        return self._client.find(*args, **kwargs)

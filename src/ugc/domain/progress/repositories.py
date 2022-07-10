@@ -1,21 +1,28 @@
 from aredis_om import NotFoundError as RedisNotFoundError
 
 from ugc.common.exceptions import NotFoundError
-from ugc.infrastructure.db.repositories import BaseRepository
+from ugc.infrastructure.db.repositories import RedisRepository
 
 from .factories import FilmProgressFactory
 from .models import UserFilmProgress
 from .types import FilmProgress
 
 
-class FilmProgressRepository(BaseRepository[UserFilmProgress]):
+class FilmProgressRepository:
     """Репозиторий для работы с данными прогресса фильма."""
 
     model = UserFilmProgress
 
-    def __init__(self, progress_factory: FilmProgressFactory) -> None:
+    def __init__(
+        self,
+        progress_factory: FilmProgressFactory,
+        redis_repository: RedisRepository[UserFilmProgress],
+    ) -> None:
         assert isinstance(progress_factory, FilmProgressFactory)
         self._factory = progress_factory
+
+        assert isinstance(redis_repository, RedisRepository)
+        self._redis_repository = redis_repository
 
     async def get_by_film_id(self, *, user_id: str, film_id: str) -> FilmProgress:
         """Получение прогресса фильма для пользователя по `film_id`."""
@@ -36,7 +43,7 @@ class FilmProgressRepository(BaseRepository[UserFilmProgress]):
         Если объект прогресса уже есть в БД, то обновляем `viewed_frame` для него.
         Если объекта еще нет - создаем новый.
         """
-        await self.update_or_create(
+        await self._redis_repository.update_or_create(
             defaults={"viewed_frame": progress.viewed_frame},
             user_id=str(progress.user_id),
             film_id=str(progress.film_id),

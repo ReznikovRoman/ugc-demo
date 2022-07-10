@@ -44,6 +44,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      mongodb:
+        image: mongo:5.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: test
+          MONGO_INITDB_ROOT_PASSWORD: yandex
+          MONGO_INITDB_DATABASE: ugc_test
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongo
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10
@@ -79,6 +92,13 @@ jobs:
           export NUGC_REDIS_DEFAULT_CHARSET=utf-8
           export NUGC_REDIS_DECODE_RESPONSES=1
           export NUGC_REDIS_RETRY_ON_TIMEOUT=1
+          export NUGC_MONGODB_USER=test
+          export NUGC_MONGODB_PASSWORD=yandex
+          export NUGC_MONGODB_NAME=ugc_test
+          export NUGC_MONGODB_HOST=localhost
+          export NUGC_MONGODB_PORT=27017
+          export NUGC_MONGOEXPRESS_LOGIN=admin
+          export NUGC_MONGOEXPRESS_PASSWORD=pass
           export NUGC_QUEUE_PROGRESS_NAME=progress-topic
           export NUGC_QUEUE_PROGRESS_GROUP=progress-group
           export NUGC_QUEUE_PROGRESS_CONSUMERS=2

@@ -7,7 +7,7 @@ from aiohttp import web
 from ugc.api.utils import orjson_response
 
 
-@docs(summary="Проверить состояние сервиса.")
+@docs(tags=["misc"], summary="Проверить состояние сервиса.")
 async def healthcheck(_: web.Request) -> web.Response:
     """Проверка состояния сервиса."""
     response = {"status": "ok"}

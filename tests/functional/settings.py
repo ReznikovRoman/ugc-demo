@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, Field, validator
 
 
 class EnvConfig(BaseSettings.Config):
@@ -22,6 +22,14 @@ class Test(BaseSettings):
     # Redis
     REDIS_OM_URL: str
 
+    # MongoDB
+    MONGODB_USER: str
+    MONGODB_PASSWORD: str
+    MONGODB_NAME: str
+    MONGODB_HOST: str
+    MONGODB_PORT: int
+    MONGODB_URL: str | None = Field(None)
+
     # Netflix Auth
     NETFLIX_AUTH_BASE_URL: str = Field(env="TEST_NETFLIX_AUTH_BASE_URL")
 
@@ -29,6 +37,17 @@ class Test(BaseSettings):
         env_prefix = "NUGC_"
         case_sensitive = True
         env_file = ".env"
+
+    @validator("MONGODB_URL", pre=True)
+    def get_mongodb_url(cls, value, values) -> str:  # noqa: N805
+        if value is not None:
+            return value
+        user = values["MONGODB_USER"]
+        password = values["MONGODB_PASSWORD"]
+        host = values["MONGODB_HOST"]
+        port = values["MONGODB_PORT"]
+        database = values["MONGODB_NAME"]
+        return f"mongodb://{user}:{password}@{host}:{port}/{database}?authSource=admin"
 
 
 @lru_cache()

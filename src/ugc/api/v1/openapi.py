@@ -63,3 +63,30 @@ get_film_progress = {
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 }
+
+create_film_review = {
+    "tags": ["review"],
+    "summary": "Создать пользовательскую рецензию на фильм.",
+    "security": [{"JWT": []}],
+    "responses": {
+        HTTPStatus.CREATED: {
+            "description": "Рецензия создана.",
+            "schema": serializers.FilmReviewDetail,
+        },
+        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.BAD_REQUEST: {"description": "Ошибка в теле запроса."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}
+
+get_film_reviews = {
+    "tags": ["review"],
+    "summary": "Получить список пользовательских рецензий на фильм.",
+    "responses": {
+        HTTPStatus.OK: {
+            "description": "Список рецензий с пагинацией.",
+            "schema": serializers.FilmReviewList,
+        },
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}

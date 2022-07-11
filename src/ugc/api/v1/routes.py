@@ -28,6 +28,15 @@ def setup_routes_v1(app: web.Application) -> None:
             handler=ugc.get_film_progress,
             allow_head=False,
         ),
+        web.get(
+            path="/ratings/films/{film_id}",
+            handler=ugc.get_film_rating,
+            allow_head=False,
+        ),
+        web.post(
+            path="/users/me/ratings/films/{film_id}",
+            handler=ugc.set_film_rating,
+        ),
 
         # Miscellaneous
         web.get(

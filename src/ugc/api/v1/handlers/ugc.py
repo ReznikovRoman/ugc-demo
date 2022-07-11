@@ -12,12 +12,13 @@ from aiohttp import web
 from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
 from ugc.api.v1 import openapi
-from ugc.api.v1.serializers import FilmProgressCreate
+from ugc.api.v1.serializers import FilmProgressCreate, FilmRatingCreate
 from ugc.containers import Container
 
 if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
     from ugc.domain.progress import ProgressDispatcherService, ProgressService
+    from ugc.domain.rating import FilmRatingDispatcherService, FilmRatingRepository
 
 
 @docs(**openapi.add_film_bookmark)
@@ -81,6 +82,34 @@ async def get_film_progress(
     user_id = get_user_id_from_jwt(request.headers)
     progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
     return orjson_response(progress, status=HTTPStatus.OK)
+
+
+@docs(**openapi.get_film_rating)
+@inject
+async def get_film_rating(
+    request: web.Request, *,
+    film_rating_repository: FilmRatingRepository = Provide[Container.film_rating_repository],
+) -> web.Response:
+    """Получение рейтинга фильма."""
+    film_id: UUID = request.match_info["film_id"]
+    film_rating = await film_rating_repository.get_by_film_id(film_id=film_id)
+    return orjson_response(film_rating, status=HTTPStatus.OK)
+
+
+@docs(**openapi.set_film_rating)
+@request_schema(FilmRatingCreate)
+@inject
+async def set_film_rating(
+    request: web.Request, *,
+    film_rating_dispatcher: FilmRatingDispatcherService = Provide[Container.film_rating_dispatcher_service],
+) -> web.Response:
+    """Установка рейтинга фильму."""
+    film_id: UUID = request.match_info["film_id"]
+    validated_data = request["data"]
+    rating = validated_data["rating"]
+    user_id = get_user_id_from_jwt(request.headers)
+    film_rating = await film_rating_dispatcher.dispatch_film_rating(film_id=film_id, user_id=user_id, rating=rating)
+    return orjson_response(film_rating, status=HTTPStatus.ACCEPTED)
 
 
 async def _handle_film_bookmark(

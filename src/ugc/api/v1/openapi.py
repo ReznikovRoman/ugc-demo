@@ -63,3 +63,27 @@ get_film_progress = {
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 }
+
+get_film_rating = {
+    "tags": ["rating"],
+    "summary": "Получить рейтинг фильма.",
+    "security": [{"JWT": []}],
+    "responses": {
+        HTTPStatus.OK: {"description": "Рейтинг фильма."},
+        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.NOT_FOUND: {"description": "Фильм не найден."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}
+
+set_film_rating = {
+    "tags": ["rating"],
+    "summary": "Поставить оценку фильму.",
+    "security": [{"JWT": []}],
+    "responses": {
+        HTTPStatus.ACCEPTED: {"description": "Рейтинг фильма сохранен."},
+        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.NOT_FOUND: {"description": "Фильм не найден."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}

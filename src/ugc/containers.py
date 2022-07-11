@@ -3,7 +3,7 @@ import logging.config
 import orjson
 from dependency_injector import containers, providers
 
-from ugc.domain import bookmarks, processors, progress
+from ugc.domain import bookmarks, processors, progress, rating
 from ugc.helpers import sentinel
 from ugc.infrastructure.db import redis
 from ugc.infrastructure.queue import consumers, producers
@@ -77,6 +77,18 @@ class Container(containers.DeclarativeContainer):
         client=kafka_consumer_bookmark_client,
     )
 
+    kafka_consumer_film_rating_client = providers.Resource(
+        consumers.init_kafka_consumer_client,
+        config=config,
+        topic=config.QUEUE_FILM_RATING_NAME,
+        group_id=config.QUEUE_FILM_RATING_GROUP,
+        **consumer_client_config,
+    )
+    kafka_film_rating_consumer = providers.Singleton(
+        consumers.KafkaConsumer,
+        client=kafka_consumer_film_rating_client,
+    )
+
     # Domain -> Progress
 
     progress_factory = providers.Factory(progress.FilmProgressFactory)
@@ -145,6 +157,35 @@ class Container(containers.DeclarativeContainer):
         message_callback=bookmark_processor,
     )
 
+    # Domain -> FilmRating
+
+    film_rating_factory = providers.Factory(rating.FilmRatingFactory)
+
+    film_rating_repository = providers.Singleton(
+        rating.FilmRatingRepository,
+        film_rating_factory=film_rating_factory,
+    )
+
+    film_rating_processor = providers.Singleton(
+        rating.FilmRatingProcessor,
+        film_rating_factory=film_rating_factory,
+        film_rating_repository=film_rating_repository,
+    )
+
+    film_rating_dispatcher_service = providers.Factory(
+        rating.FilmRatingDispatcherService,
+        film_rating_factory=film_rating_factory,
+        producer=kafka_producer,
+        config=config,
+    )
+
+    film_rating_processor_service = providers.Factory(
+        processors.ProcessorService,
+        consumer=kafka_film_rating_consumer,
+        concurrency=config.QUEUE_FILM_RATING_CONSUMERS,
+        message_callback=film_rating_processor,
+    )
+
 
 def override_providers(container: Container) -> Container:
     if not container.config.USE_STUBS():
@@ -153,9 +194,11 @@ def override_providers(container: Container) -> Container:
     container.kafka_producer_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_film_rating_client.override(providers.Resource(dummy_resource))
     container.kafka_producer.override(sentinel)
     container.kafka_bookmark_consumer.override(sentinel)
     container.kafka_progress_consumer.override(sentinel)
+    container.kafka_film_rating_consumer.override(sentinel)
 
     progress_processor = providers.Singleton(
         InMemoryProcessor,
@@ -165,10 +208,16 @@ def override_providers(container: Container) -> Container:
         InMemoryProcessor,
         queue=providers.Singleton(InMemoryQueue),
     )
+    film_rating_processor = providers.Singleton(
+        InMemoryProcessor,
+        queue=providers.Singleton(InMemoryQueue),
+    )
     container.progress_dispatcher_service.add_kwargs(producer=progress_processor)
     container.bookmark_dispatcher_service.add_kwargs(producer=bookmark_processor)
+    container.film_rating_dispatcher_service.add_kwargs(producer=film_rating_processor)
     container.progress_processor_service.add_kwargs(consumer=progress_processor)
     container.bookmark_processor_service.add_kwargs(consumer=bookmark_processor)
+    container.film_rating_processor_service.add_kwargs(consumer=film_rating_processor)
 
     return container
 
@@ -177,6 +226,7 @@ async def get_processors(container: Container) -> list[processors.ProcessorServi
     processor_services = [
         container.progress_processor_service(),
         container.bookmark_processor_service(),
+        container.film_rating_processor_service(),
     ]
     if container.progress_processor_service.is_async_mode_enabled():
         return [await processor_service for processor_service in processor_services]

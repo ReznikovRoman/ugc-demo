@@ -1,10 +1,10 @@
-import logging
 from abc import ABC, abstractmethod
 from typing import AsyncIterator, Awaitable, Callable
 
 from aiokafka.errors import KafkaError
 from aiokafka.producer import AIOKafkaProducer
 from aiokafka.structs import RecordMetadata
+from loguru import logger
 
 from .typedefs import IAsyncRecordMetadata, Message
 
@@ -28,7 +28,7 @@ class KafkaProducer(AsyncProducer):
         try:
             return await self._client.send(queue, key=key, value=message)
         except KafkaError as e:
-            logging.error(e)
+            logger.error(e)
 
 
 async def init_kafka_producer_client(

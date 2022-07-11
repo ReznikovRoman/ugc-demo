@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # Kafka
     KAFKA_URL: str
 
+    # ELK
+    LOGSTASH_HOST: str | None = Field("localhost")
+    LOGSTASH_PORT: int | None = Field(5044)
+    LOGSTASH_LOGGER_VERSION: int | None = Field(1)
+
     # Config
     USE_STUBS: bool = Field(False)
     TESTING: bool = Field(False)

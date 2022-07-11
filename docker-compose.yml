@@ -97,7 +97,49 @@ services:
     depends_on:
       - server
 
+  elasticsearch:
+    image: elasticsearch:7.17.2
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data_elk:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -u elastic:elastic -s -f elasticsearch:9200/_cat/health >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  logstash:
+    image: logstash:7.17.2
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - ES_HOST=elasticsearch:9200
+      - XPACK_MONITORING_ENABLED=false
+      - LOGSTASH_ELASTICSEARCH_HOST=http://elasticsearch:9200
+    ports:
+      - "5044:5044/udp"
+    volumes:
+      - ./conf/elk/logstash/logstash.conf:/config/logstash.conf:ro
+    command: logstash -f /config/logstash.conf
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: kibana:7.17.2
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
 
 volumes:
   redis_data:
   mongodb_data:
+  es_data_elk:

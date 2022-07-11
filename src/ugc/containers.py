@@ -1,9 +1,12 @@
 import logging.config
+import sys
 from functools import partial
 
+import loguru
 import orjson
 from dependency_injector import containers, providers
 
+from ugc.core import logging as ugc_logging
 from ugc.domain import bookmarks, processors, progress, reviews
 from ugc.domain.bookmarks.models import FilmBookmark
 from ugc.domain.progress.models import UserFilmProgress
@@ -26,6 +29,20 @@ class Container(containers.DeclarativeContainer):
     )
 
     config = providers.Configuration()
+
+    logstash_handler = providers.Resource(
+        ugc_logging.init_logstash_handler,
+        host=config.LOGSTASH_HOST,
+        port=config.LOGSTASH_PORT,
+        version=config.LOGSTASH_LOGGER_VERSION,
+    )
+
+    logger = providers.Resource(
+        ugc_logging.init_logger,
+        handler=logstash_handler,
+        log_format="[{time}] [{level}] [Request: {request_id}] [{name}]: {message}",
+        level=logging.INFO,
+    )
 
     configure_logging = providers.Resource(
         logging.basicConfig,
@@ -223,6 +240,8 @@ async def dummy_resource() -> None:
 
 
 def _override_with_dummy_resources(container: Container) -> Container:
+    if container.config.CI() or container.config.TESTING():
+        container.logger.override(providers.Resource(_init_dummy_logger))
     container.kafka_producer_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
@@ -230,3 +249,7 @@ def _override_with_dummy_resources(container: Container) -> Container:
     container.kafka_bookmark_consumer.override(sentinel)
     container.kafka_progress_consumer.override(sentinel)
     return container
+
+
+def _init_dummy_logger() -> None:
+    loguru.logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")

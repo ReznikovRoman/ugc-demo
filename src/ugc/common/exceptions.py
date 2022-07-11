@@ -57,3 +57,11 @@ class AuthorizationError(NetflixUGCError):
     message = "Authorization error"
     code = "authorization_error"
     status_code = HTTPStatus.UNAUTHORIZED
+
+
+class RequiredHeaderMissingError(NetflixUGCError):
+    """Отсутствует обязательный заголовок в запросе."""
+
+    message = "Required header is missing"
+    code = "missing_header"
+    status_code: int = HTTPStatus.BAD_REQUEST

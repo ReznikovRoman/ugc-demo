@@ -8,7 +8,7 @@ from ugc.common.exceptions import NetflixUGCError
 
 @web.middleware
 async def exceptions_middleware(request: web.Request, handler: Callable[..., Awaitable]) -> web.Response:
-    """Обработка ошибок c проекта."""
+    """Обработка ошибок проекта."""
     try:
         response = await handler(request)
     except NetflixUGCError as exc:

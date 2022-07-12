@@ -39,9 +39,9 @@ class ProcessorService:
         message = await self.consumer.fetch_message()
         try:
             await self.message_callback(message)
-        except Exception as e:
-            logger.error("Error while processing message: {exception}".format(exception=e))
-            raise e
+        except Exception as exc:
+            logger.error("Error while processing message: {exception}".format(exception=exc))
+            raise exc
 
     async def _processor_loop(self) -> None:
         while True:

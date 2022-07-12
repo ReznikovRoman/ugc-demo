@@ -13,8 +13,7 @@ class ProgressService:
 
     async def track_film_progress(self, progress: FilmProgress, /) -> FilmProgress:
         """Трекинг прогресса фильма."""
-        progress = await self._repository.update_or_create_progress(progress)
-        return progress
+        return await self._repository.update_or_create_progress(progress)
 
     async def get_user_film_progress(self, *, user_id: UUID, film_id: UUID) -> FilmProgress:
         """Получение прогресса фильма для пользователя."""

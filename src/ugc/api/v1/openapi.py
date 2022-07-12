@@ -65,25 +65,25 @@ get_film_progress = {
 }
 
 get_film_rating = {
-    "tags": ["rating"],
+    "tags": ["ratings"],
     "summary": "Получить рейтинг фильма.",
-    "security": [{"JWT": []}],
     "responses": {
-        HTTPStatus.OK: {"description": "Рейтинг фильма."},
-        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.NOT_FOUND: {"description": "Фильм не найден."},
+        HTTPStatus.OK: {
+            "description": "Рейтинг фильма.",
+            "schema": serializers.FilmRating,
+        },
+        HTTPStatus.NO_CONTENT: {"description": "У фильма нет рейтинга."},
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 }
 
-set_film_rating = {
-    "tags": ["rating"],
+add_film_rating = {
+    "tags": ["ratings"],
     "summary": "Поставить оценку фильму.",
     "security": [{"JWT": []}],
     "responses": {
         HTTPStatus.ACCEPTED: {"description": "Рейтинг фильма сохранен."},
         HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
-        HTTPStatus.NOT_FOUND: {"description": "Фильм не найден."},
         HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
     },
 }

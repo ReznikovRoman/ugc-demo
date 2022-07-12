@@ -1,7 +1,11 @@
 from http import HTTPStatus
 
 
-class NetflixUGCError(Exception):
+class BaseNetflixUGCError(Exception):
+    """Базовая ошибка сервиса."""
+
+
+class NetflixUGCError(BaseNetflixUGCError):
     """Ошибка сервиса Netflix UGC."""
 
     message: str

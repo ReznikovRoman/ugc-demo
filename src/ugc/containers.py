@@ -1,9 +1,10 @@
 import logging.config
+from typing import AsyncIterator
 
 import orjson
 from dependency_injector import containers, providers
 
-from ugc.domain import bookmarks, processors, progress, rating
+from ugc.domain import bookmarks, processors, progress, ratings
 from ugc.helpers import sentinel
 from ugc.infrastructure.db import redis
 from ugc.infrastructure.queue import consumers, producers
@@ -159,21 +160,27 @@ class Container(containers.DeclarativeContainer):
 
     # Domain -> FilmRating
 
-    film_rating_factory = providers.Factory(rating.FilmRatingFactory)
+    film_rating_factory = providers.Factory(ratings.FilmRatingFactory)
 
     film_rating_repository = providers.Singleton(
-        rating.FilmRatingRepository,
+        ratings.FilmRatingRepository,
+        redis_client=redis_client,
         film_rating_factory=film_rating_factory,
     )
 
-    film_rating_processor = providers.Singleton(
-        rating.FilmRatingProcessor,
-        film_rating_factory=film_rating_factory,
+    film_rating_service = providers.Singleton(
+        ratings.FilmRatingService,
         film_rating_repository=film_rating_repository,
     )
 
+    film_rating_processor = providers.Singleton(
+        ratings.FilmRatingProcessor,
+        film_rating_factory=film_rating_factory,
+        film_rating_service=film_rating_service,
+    )
+
     film_rating_dispatcher_service = providers.Factory(
-        rating.FilmRatingDispatcherService,
+        ratings.FilmRatingDispatcherService,
         film_rating_factory=film_rating_factory,
         producer=kafka_producer,
         config=config,
@@ -222,15 +229,17 @@ def override_providers(container: Container) -> Container:
     return container
 
 
-async def get_processors(container: Container) -> list[processors.ProcessorService]:
-    processor_services = [
-        container.progress_processor_service(),
-        container.bookmark_processor_service(),
-        container.film_rating_processor_service(),
+async def get_processors(container: Container) -> AsyncIterator[processors.ProcessorService]:
+    processor_providers = [
+        container.progress_processor_service,
+        container.bookmark_processor_service,
+        container.film_rating_processor_service,
     ]
-    if container.progress_processor_service.is_async_mode_enabled():
-        return [await processor_service for processor_service in processor_services]
-    return processor_services
+    for provider in processor_providers:
+        try:
+            yield await provider()
+        except TypeError:
+            yield provider()
 
 
 async def dummy_resource() -> None:

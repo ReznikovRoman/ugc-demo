@@ -10,4 +10,4 @@ class FilmRating(BaseHashModel):
 
     user_id: UUID = Field(index=True)
     film_id: UUID = Field(index=True)
-    rating: int
+    rating: int = Field(index=True)

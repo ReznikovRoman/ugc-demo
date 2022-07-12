@@ -29,18 +29,18 @@ async def create_app() -> web.Application:
     await container.init_resources()
     container.check_dependencies()
 
-    processors = await get_processors(container)
+    processors = get_processors(container)
 
     @app.on_startup.append
     async def _on_startup(_: web.Application) -> None:
         logging.info("Start server")
-        for processor in processors:
+        async for processor in processors:
             processor.start_processing()
 
     @app.on_cleanup.append
     async def _on_cleanup(_: web.Application) -> None:
         logging.info("Cleanup resources")
-        for processor in processors:
+        async for processor in processors:
             processor.stop_processing()
         await container.shutdown_resources()
 

@@ -35,7 +35,7 @@ def setup_routes_v1(app: web.Application) -> None:
         ),
         web.post(
             path="/users/me/ratings/films/{film_id}",
-            handler=ugc.set_film_rating,
+            handler=ugc.add_film_rating,
         ),
 
         # Miscellaneous

@@ -13,7 +13,7 @@ class FilmRatingDispatcherService:
 
     def __init__(self, film_rating_factory: FilmRatingFactory, producer: AsyncProducer, config: dict[str, Any]) -> None:
         assert isinstance(film_rating_factory, FilmRatingFactory)
-        self._film_rating_factory = film_rating_factory
+        self._factory = film_rating_factory
 
         assert isinstance(producer, AsyncProducer)
         self._producer = producer
@@ -22,7 +22,7 @@ class FilmRatingDispatcherService:
         self._config = config
 
     async def dispatch_film_rating(self, *, user_id: UUID, film_id: UUID, rating: int) -> FilmRating:
-        film_rating = self._film_rating_factory.create_new(user_id=user_id, film_id=film_id, rating=rating)
+        film_rating = self._factory.create_new(user_id=user_id, film_id=film_id, rating=rating)
         delay_tasks(
             self._producer.send(
                 self._config["QUEUE_FILM_RATING_NAME"], key=f"{user_id}:{film_id}", message=film_rating.to_dict(),

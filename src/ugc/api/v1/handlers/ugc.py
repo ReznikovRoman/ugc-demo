@@ -14,11 +14,12 @@ from ugc.api.utils import orjson_response
 from ugc.api.v1 import openapi
 from ugc.api.v1.serializers import FilmProgressCreate, FilmRatingCreate
 from ugc.containers import Container
+from ugc.domain.ratings.exceptions import NoFilmRatingError
 
 if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
     from ugc.domain.progress import ProgressDispatcherService, ProgressService
-    from ugc.domain.rating import FilmRatingDispatcherService, FilmRatingRepository
+    from ugc.domain.ratings import FilmRatingDispatcherService, FilmRatingService
 
 
 @docs(**openapi.add_film_bookmark)
@@ -88,22 +89,25 @@ async def get_film_progress(
 @inject
 async def get_film_rating(
     request: web.Request, *,
-    film_rating_repository: FilmRatingRepository = Provide[Container.film_rating_repository],
+    film_rating_service: FilmRatingService = Provide[Container.film_rating_service],
 ) -> web.Response:
     """Получение рейтинга фильма."""
     film_id: UUID = request.match_info["film_id"]
-    film_rating = await film_rating_repository.get_by_film_id(film_id=film_id)
+    try:
+        film_rating = await film_rating_service.get_film_rating(film_id)
+    except NoFilmRatingError:
+        return orjson_response(status=HTTPStatus.NO_CONTENT)
     return orjson_response(film_rating, status=HTTPStatus.OK)
 
 
-@docs(**openapi.set_film_rating)
+@docs(**openapi.add_film_rating)
 @request_schema(FilmRatingCreate)
 @inject
-async def set_film_rating(
+async def add_film_rating(
     request: web.Request, *,
     film_rating_dispatcher: FilmRatingDispatcherService = Provide[Container.film_rating_dispatcher_service],
 ) -> web.Response:
-    """Установка рейтинга фильму."""
+    """Добавление пользовательского рейтинга фильму."""
     film_id: UUID = request.match_info["film_id"]
     validated_data = request["data"]
     rating = validated_data["rating"]

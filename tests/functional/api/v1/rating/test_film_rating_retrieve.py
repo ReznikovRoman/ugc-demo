@@ -1,29 +1,22 @@
-import pytest
+from tests.functional.api.constants import INVALID_FILM_ID, VALID_FILM_ID
 
-from tests.functional.api.constants import VALID_FILM_ID
-
-from ..base import AuthClientTest
+from ..base import BaseClientTest
 
 
-class TestFilmRatingRetrieve(AuthClientTest):
+class TestFilmRatingRetrieve(BaseClientTest):
     """Тестирование получения информации о рейтинге фильма."""
 
-    endpoint = "/api/v1/ratings/films/{VALID_FILM_ID}"
+    endpoint = "/api/v1/ratings/films/{film_id}"
     method = "get"
     format_url = True
 
     async def test_ok(self):
-        """Если в БД есть информация о рейтинге фильма, то клиент получит ее."""
-        await self.client.get(self.endpoint)
+        """Если в БД есть информация о рейтинге фильма, то клиент получит средний рейтинг."""
+        url = f"/api/v1/ratings/films/{VALID_FILM_ID}"
+        # TODO: создание рейтингов у фильма - фикстура
+        await self.client.get(url, expected_status_code=204)
 
-    async def test_not_found(self):
-        """Если фильма нет в БД, то пользователь получит ошибку."""
-        await self.client.get("/api/v1/ratings/films/XXX", expected_status_code=404)
-
-    @pytest.fixture
-    async def pre_auth_invalid_access_token(self):
-        return {"film_id": VALID_FILM_ID}
-
-    @pytest.fixture
-    async def pre_auth_no_credentials(self):
-        return {"film_id": VALID_FILM_ID}
+    async def test_no_film_ratings(self):
+        """Если у фильма нет пользовательских рейтингов, то клиент получит пустой ответ."""
+        url = f"/api/v1/ratings/films/{INVALID_FILM_ID}"
+        await self.client.get(url, expected_status_code=204)

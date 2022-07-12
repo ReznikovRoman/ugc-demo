@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 
 from tests.functional.api.constants import VALID_FILM_ID
@@ -31,10 +29,9 @@ class TestFilmProgressRetrieve(AuthClientTest):
         data_first = {"viewed_frame": 500}
         frame_last = 1000
         data_last = {"viewed_frame": frame_last}
-        await asyncio.gather(
-            self.client.post(url, json=data_first, expected_status_code=202),
-            self.client.post(url, json=data_last, expected_status_code=202),
-        )
+
+        await self.client.post(url, json=data_first, expected_status_code=202)
+        await self.client.post(url, json=data_last, expected_status_code=202)
 
         got = await self.client.get(url)
 

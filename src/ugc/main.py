@@ -5,7 +5,8 @@ from aiohttp import web
 from ugc.api.apispec import init_apispec
 from ugc.api.v1.routes import setup_routes_v1
 from ugc.core.config import get_settings
-from ugc.middleware.errors import exception_middleware
+from ugc.middleware.errors import exceptions_middleware
+from ugc.middleware.request_id import request_id_middleware
 
 from .containers import Container, get_processors, override_providers
 
@@ -17,7 +18,7 @@ async def create_app() -> web.Application:
 
     container.config.from_pydantic(settings)
 
-    app = web.Application(middlewares=[exception_middleware])
+    app = web.Application(middlewares=[request_id_middleware, exceptions_middleware])
     app.container = container
 
     api_v1 = web.Application()

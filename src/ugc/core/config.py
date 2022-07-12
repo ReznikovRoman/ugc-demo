@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     REDIS_RETRY_ON_TIMEOUT: bool = True
     REDIS_KEY_PREFIX: str = Field("ugc")
 
+    # MongoDB
+    MONGODB_USER: str
+    MONGODB_PASSWORD: str
+    MONGODB_NAME: str
+    MONGODB_HOST: str
+    MONGODB_PORT: int
+    MONGODB_URL: str | None = Field(None)
+
     # Queue
     QUEUE_PROGRESS_NAME: str = Field("progress-topic")
     QUEUE_PROGRESS_GROUP: str = Field("progress-group")
@@ -56,6 +64,11 @@ class Settings(BaseSettings):
     # Kafka
     KAFKA_URL: str
 
+    # ELK
+    LOGSTASH_HOST: str | None = Field("localhost")
+    LOGSTASH_PORT: int | None = Field(5044)
+    LOGSTASH_LOGGER_VERSION: int | None = Field(1)
+
     # Config
     USE_STUBS: bool = Field(False)
     TESTING: bool = Field(False)
@@ -70,6 +83,17 @@ class Settings(BaseSettings):
         if isinstance(server_hosts, str):
             return [item.strip() for item in server_hosts.split(",")]
         return server_hosts
+
+    @validator("MONGODB_URL", pre=True)
+    def get_mongodb_url(cls, value, values) -> str:
+        if value is not None:
+            return value
+        user = values["MONGODB_USER"]
+        password = values["MONGODB_PASSWORD"]
+        host = values["MONGODB_HOST"]
+        port = values["MONGODB_PORT"]
+        database = values["MONGODB_NAME"]
+        return f"mongodb://{user}:{password}@{host}:{port}/{database}?authSource=admin"
 
 
 @lru_cache()

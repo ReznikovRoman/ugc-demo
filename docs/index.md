@@ -31,3 +31,22 @@
       ```
   - Получение прогресса фильма `film_id` для пользователя
     - `GET /api/v1/users/me/progress/films/{film_id}`
+  - Создание пользовательской рецензии на фильм `film_id`
+    - `POST /api/v1/users/me/reviews/films/{film_id}`
+    - Тело запроса
+      ```json
+        {
+          "title": "Review title",
+          "review": "Some text"
+        }
+      ```
+  - Получение всех рецензий в фильме `film_id`. Используется пагинация
+    - `GET /api/v1/reviews/films/{film_id}`
+  - Оценка рецензии `review_id` - была ли полезна.
+    - `POST /api/v1/users/me/reviews/{review_id}/ratings`
+    - Тело запроса
+      ```json
+        {
+          "useful": true
+        }
+      ```

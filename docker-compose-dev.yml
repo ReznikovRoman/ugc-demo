@@ -27,6 +27,44 @@ services:
       - "traefik.http.routers.ugc_api.rule=Host(`api-ugc.localhost`,`traefik`)"
       - "traefik.http.routers.ugc_api.entrypoints=web"
 
+  mongodb:
+    image: mongo:5.0
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${NUGC_MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${NUGC_MONGODB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${NUGC_MONGODB_NAME}
+      - MONGODB_DATA_DIR=/data/db
+      - MONDODB_LOG_DIR=/dev/null
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb:27017/${NUGC_MONGODB_NAME} --quiet || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  mongo-express:
+    image: mongo-express:0.54
+    restart: on-failure
+    ports:
+      - "8061:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_OPTIONS_EDITORTHEME=default
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${NUGC_MONGODB_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${NUGC_MONGODB_PASSWORD}
+      - ME_CONFIG_BASICAUTH_USERNAME=${NUGC_MONGOEXPRESS_LOGIN}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${NUGC_MONGOEXPRESS_PASSWORD}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
   redis:
     image: redis/redis-stack:7.0.0-RC5
     ports:
@@ -369,6 +407,49 @@ services:
       schema-registry:
         condition: service_started
 
+  elasticsearch:
+    image: elasticsearch:7.17.2
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data_elk:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl -u elastic:elastic -s -f elasticsearch:9200/_cat/health >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  logstash:
+    image: logstash:7.17.2
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - ES_HOST=elasticsearch:9200
+      - XPACK_MONITORING_ENABLED=false
+      - LOGSTASH_ELASTICSEARCH_HOST=http://elasticsearch:9200
+    ports:
+      - "5044:5044/udp"
+    volumes:
+      - ./conf/elk/logstash/logstash.conf:/config/logstash.conf:ro
+    command: logstash -f /config/logstash.conf
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: kibana:7.17.2
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
 
 volumes:
   redis_data:
+  mongodb_data:
+  es_data_elk:

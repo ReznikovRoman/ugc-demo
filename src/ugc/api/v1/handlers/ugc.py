@@ -4,15 +4,14 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from aiohttp_apispec import docs, request_schema
+from aiohttp_apispec import docs, querystring_schema, request_schema
 from dependency_injector.wiring import Provide, inject
 
 from aiohttp import web
 
 from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
-from ugc.api.v1 import openapi
-from ugc.api.v1.serializers import FilmProgressCreate, FilmRatingCreate
+from ugc.api.v1 import openapi, serializers
 from ugc.containers import Container
 from ugc.domain.ratings.exceptions import NoFilmRatingError
 
@@ -20,6 +19,7 @@ if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
     from ugc.domain.progress import ProgressDispatcherService, ProgressService
     from ugc.domain.ratings import FilmRatingDispatcherService, FilmRatingService
+    from ugc.domain.reviews import ReviewService
 
 
 @docs(**openapi.add_film_bookmark)
@@ -57,7 +57,7 @@ async def get_user_films_bookmarks(
 
 
 @docs(**openapi.track_film_progress)
-@request_schema(FilmProgressCreate)
+@request_schema(serializers.FilmProgressCreate)
 @inject
 async def track_film_progress(
     request: web.Request, *,
@@ -101,7 +101,7 @@ async def get_film_rating(
 
 
 @docs(**openapi.add_film_rating)
-@request_schema(FilmRatingCreate)
+@request_schema(serializers.FilmRatingCreate)
 @inject
 async def add_film_rating(
     request: web.Request, *,
@@ -114,6 +114,38 @@ async def add_film_rating(
     user_id = get_user_id_from_jwt(request.headers)
     film_rating = await film_rating_dispatcher.dispatch_film_rating(film_id=film_id, user_id=user_id, rating=rating)
     return orjson_response(film_rating, status=HTTPStatus.ACCEPTED)
+
+
+@docs(**openapi.create_film_review)
+@request_schema(serializers.FilmReviewCreate)
+@inject
+async def create_film_review(
+    request: web.Request, *,
+    review_service: ReviewService = Provide[Container.review_service],
+) -> web.Response:
+    """Создание новой рецензии на фильм от авторизированного пользователя."""
+    data = request["data"]
+    film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
+    review = await review_service.create_review(
+        user_id=user_id, film_id=film_id, title=data["title"], review_text=data["review"])
+    return orjson_response(review, status=HTTPStatus.CREATED)
+
+
+@docs(**openapi.get_film_reviews)
+@querystring_schema(serializers.CursorPaginationQueryParams)
+@inject
+async def get_film_reviews(
+    request: web.Request, *,
+    review_service: ReviewService = Provide[Container.review_service],
+) -> web.Response:
+    """Получение списка рецензий на фильм с пагинацией."""
+    film_id: UUID = request.match_info["film_id"]
+    query_params: dict = request["querystring"]
+    reviews, cursor = await review_service.get_film_reviews(
+        film_id, limit=query_params.get("limit"), cursor=query_params.get("cursor"))
+    response = {"cursor": cursor, "data": reviews}
+    return orjson_response(response, status=HTTPStatus.OK)
 
 
 async def _handle_film_bookmark(

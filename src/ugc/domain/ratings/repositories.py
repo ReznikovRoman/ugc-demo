@@ -3,7 +3,7 @@ from uuid import UUID
 
 from aioredis import Redis
 
-from ugc.infrastructure.db.repositories import BaseRepository
+from ugc.infrastructure.db.repositories import RedisRepository
 
 from . import types
 from .exceptions import NoFilmRatingError
@@ -11,21 +11,29 @@ from .factories import FilmRatingFactory
 from .models import FilmRating
 
 
-class FilmRatingRepository(BaseRepository[FilmRating]):
+class FilmRatingRepository:
     """Репозиторий для работы с данными оценок фильмов."""
 
     model = FilmRating
 
-    def __init__(self, redis_client: Redis, film_rating_factory: FilmRatingFactory) -> None:
+    def __init__(
+        self,
+        redis_client: Redis,
+        film_rating_factory: FilmRatingFactory,
+        redis_repository: RedisRepository[FilmRating],
+    ) -> None:
         assert isinstance(redis_client, Redis)
         self._redis_client = redis_client
 
         assert isinstance(film_rating_factory, FilmRatingFactory)
         self._factory = film_rating_factory
 
+        assert isinstance(redis_repository, RedisRepository)
+        self._redis_repository = redis_repository
+
     async def create(self, rating: types.FilmRating, /) -> types.FilmRating:
         """Добавление оценки пользователя для фильма."""
-        await self.update_or_create(
+        await self._redis_repository.update_or_create(
             defaults={"rating": rating.rating},
             user_id=str(rating.user_id),
             film_id=str(rating.film_id),

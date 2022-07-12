@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from .settings import get_settings
-from .testlib import create_anon_client, create_auth_client, flush_redis, run_redis_migrations
+from .testlib import create_anon_client, create_auth_client, flush_mongo, flush_redis, run_redis_migrations, setup_mongo
 
 if TYPE_CHECKING:
     from .settings import Test
@@ -39,6 +39,13 @@ async def auth_client() -> APIClient:
     await auth_client_.close()
 
 
+@pytest.fixture(scope="session")
+async def another_auth_client() -> APIClient:
+    auth_client_ = create_auth_client(user_email="another@gmail.com")
+    yield auth_client_
+    await auth_client_.close()
+
+
 @pytest.fixture
 def settings() -> Test:
     return settings_
@@ -51,3 +58,12 @@ async def _autoflush_db() -> None:
     finally:
         await flush_redis()
         await run_redis_migrations()
+
+
+@pytest.fixture(autouse=True)
+async def _autoflush_mongo() -> None:
+    try:
+        yield
+    finally:
+        await flush_mongo()
+        await setup_mongo()

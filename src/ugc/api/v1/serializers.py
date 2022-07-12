@@ -2,6 +2,19 @@ from marshmallow import Schema, fields
 from marshmallow.validate import Range
 
 
+class CursorPaginationQueryParams(Schema):
+    """Параметры для `cursor-based` сортировки."""
+
+    limit = fields.Integer()
+    cursor = fields.String()
+
+
+class CursorPaginationResultsMixin(Schema):
+    """Миксин для результатов `cursor-based` пагинации."""
+
+    cursor = fields.String()
+
+
 class FilmBookmarkList(Schema):
     """Сериалайзер списка закладок фильмов."""
 
@@ -39,3 +52,27 @@ class FilmRating(Schema):
 
     film_id = fields.UUID()
     rating = fields.Float()
+
+
+class FilmReviewCreate(Schema):
+    """Сериалайзер для создания рецензии на фильм."""
+
+    title = fields.Str(required=True)
+    review = fields.Str(required=True)
+
+
+class FilmReviewDetail(Schema):
+    """Сериалайзер рецензии на фильм."""
+
+    id = fields.Str()  # noqa: VNE003
+    user_id = fields.UUID()
+    film_id = fields.UUID()
+    title = fields.Str()
+    review = fields.Str()
+    created_at = fields.DateTime()
+
+
+class FilmReviewList(CursorPaginationResultsMixin):
+    """Список рецензий на фильм."""
+
+    data = fields.Nested(FilmReviewDetail(many=True))

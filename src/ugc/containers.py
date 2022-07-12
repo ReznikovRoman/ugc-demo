@@ -1,12 +1,20 @@
 import logging.config
+import sys
+from functools import partial
 from typing import AsyncIterator
 
+import loguru
 import orjson
 from dependency_injector import containers, providers
 
-from ugc.domain import bookmarks, processors, progress, ratings
+from ugc.core import logging as ugc_logging
+from ugc.domain import bookmarks, processors, progress, ratings, reviews
+from ugc.domain.bookmarks.models import FilmBookmark
+from ugc.domain.progress.models import UserFilmProgress
+from ugc.domain.ratings.models import FilmRating
+from ugc.domain.reviews.constants import REVIEWS_COLLECTION_NAME
 from ugc.helpers import sentinel
-from ugc.infrastructure.db import redis
+from ugc.infrastructure.db import mongo, redis, repositories
 from ugc.infrastructure.queue import consumers, producers
 from ugc.infrastructure.queue.stubs import InMemoryProcessor, InMemoryQueue
 
@@ -24,6 +32,20 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
+    logstash_handler = providers.Resource(
+        ugc_logging.init_logstash_handler,
+        host=config.LOGSTASH_HOST,
+        port=config.LOGSTASH_PORT,
+        version=config.LOGSTASH_LOGGER_VERSION,
+    )
+
+    logger = providers.Resource(
+        ugc_logging.init_logger,
+        handler=logstash_handler,
+        log_format="[{time}] [{level}] [Request: {request_id}] [{name}]: {message}",
+        level=logging.INFO,
+    )
+
     configure_logging = providers.Resource(
         logging.basicConfig,
         level=logging.INFO,
@@ -32,9 +54,25 @@ class Container(containers.DeclarativeContainer):
 
     # Infrastructure
 
+    mongo_client = providers.Resource(
+        mongo.init_mongo,
+        url=config.MONGODB_URL,
+    )
+
     redis_client = providers.Resource(
         redis.init_redis,
         url=config.REDIS_OM_URL,
+    )
+
+    redis_repository_factory = providers.Factory(
+        providers.Factory,
+        repositories.RedisRepository,
+    )
+
+    mongo_repository_factory = partial(
+        providers.Factory,
+        provides=repositories.MongoRepository,
+        db=mongo_client,
     )
 
     kafka_producer_client = providers.Resource(
@@ -97,6 +135,7 @@ class Container(containers.DeclarativeContainer):
     progress_repository = providers.Singleton(
         progress.FilmProgressRepository,
         progress_factory=progress_factory,
+        redis_repository=redis_repository_factory(model=UserFilmProgress),
     )
 
     progress_service = providers.Singleton(
@@ -131,6 +170,7 @@ class Container(containers.DeclarativeContainer):
     bookmark_repository = providers.Singleton(
         bookmarks.BookmarkRepository,
         bookmark_factory=bookmark_factory,
+        redis_repository=redis_repository_factory(model=FilmBookmark),
     )
 
     bookmark_service = providers.Singleton(
@@ -166,6 +206,7 @@ class Container(containers.DeclarativeContainer):
         ratings.FilmRatingRepository,
         redis_client=redis_client,
         film_rating_factory=film_rating_factory,
+        redis_repository=redis_repository_factory(model=FilmRating),
     )
 
     film_rating_service = providers.Singleton(
@@ -193,8 +234,26 @@ class Container(containers.DeclarativeContainer):
         message_callback=film_rating_processor,
     )
 
+    # Domain -> Reviews
+
+    review_factory = providers.Factory(reviews.FilmReviewFactory)
+
+    review_repository = providers.Singleton(
+        reviews.ReviewRepository,
+        mongo_repository=mongo_repository_factory(factory=review_factory, collection_name=REVIEWS_COLLECTION_NAME),
+        db=mongo_client,
+        review_factory=review_factory,
+    )
+
+    review_service = providers.Factory(
+        reviews.ReviewService,
+        review_factory=review_factory,
+        review_repository=review_repository,
+    )
+
 
 def override_providers(container: Container) -> Container:
+    """Перезаписывание провайдеров с помощью стабов."""
     if not container.config.USE_STUBS():
         return container
 
@@ -243,4 +302,22 @@ async def get_processors(container: Container) -> AsyncIterator[processors.Proce
 
 
 async def dummy_resource() -> None:
-    ...
+    """Функция-ресурс для перезаписи в DI контейнере."""
+
+
+def _override_with_dummy_resources(container: Container) -> Container:
+    if container.config.CI() or container.config.TESTING():
+        container.logger.override(providers.Resource(_init_dummy_logger))
+    container.kafka_producer_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_film_rating_client.override(providers.Resource(dummy_resource))
+    container.kafka_producer.override(sentinel)
+    container.kafka_bookmark_consumer.override(sentinel)
+    container.kafka_progress_consumer.override(sentinel)
+    container.kafka_film_rating_consumer.override(sentinel)
+    return container
+
+
+def _init_dummy_logger() -> None:
+    loguru.logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")

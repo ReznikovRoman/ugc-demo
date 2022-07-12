@@ -18,6 +18,11 @@ class APIClient(TestClient):
     def __init__(self, *args, **kwargs):
         super(APIClient, self).__init__(*args, **kwargs)
 
+    async def _request(self, method: str, path: str, **kwargs: Any) -> ClientResponse:
+        headers = kwargs.pop("headers", {})
+        headers.update({"X-Request-Id": "XXX-XXX-XXX"})
+        return await super(APIClient, self)._request(method, path, headers=headers, **kwargs)
+
     async def head(self, *args, **kwargs) -> APIResponse:
         return await self._api_call("head", kwargs.get("expected_status_code", 200), *args, **kwargs)
 

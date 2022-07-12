@@ -112,6 +112,7 @@ services:
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic progress-topic --replication-factor 1 --partitions 3
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic bookmarks-topic --replication-factor 1 --partitions 3
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic film-rating-topic --replication-factor 1 --partitions 3
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list

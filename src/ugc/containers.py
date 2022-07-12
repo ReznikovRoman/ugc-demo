@@ -143,17 +143,17 @@ class Container(containers.DeclarativeContainer):
         progress_repository=progress_repository,
     )
 
-    progress_processor = providers.Singleton(
-        progress.ProgressProcessor,
-        progress_factory=progress_factory,
-        progress_service=progress_service,
-    )
-
     progress_dispatcher_service = providers.Factory(
         progress.ProgressDispatcherService,
         progress_factory=progress_factory,
         producer=kafka_producer,
         config=config,
+    )
+
+    progress_processor = providers.Singleton(
+        progress.ProgressProcessor,
+        progress_factory=progress_factory,
+        progress_service=progress_service,
     )
 
     progress_processor_service = providers.Factory(
@@ -178,17 +178,17 @@ class Container(containers.DeclarativeContainer):
         bookmark_repository=bookmark_repository,
     )
 
-    bookmark_processor = providers.Singleton(
-        bookmarks.BookmarkProcessor,
-        bookmark_factory=bookmark_factory,
-        bookmark_service=bookmark_service,
-    )
-
     bookmark_dispatcher_service = providers.Factory(
         bookmarks.BookmarkDispatcherService,
         bookmark_factory=bookmark_factory,
         producer=kafka_producer,
         config=config,
+    )
+
+    bookmark_processor = providers.Singleton(
+        bookmarks.BookmarkProcessor,
+        bookmark_factory=bookmark_factory,
+        bookmark_service=bookmark_service,
     )
 
     bookmark_processor_service = providers.Factory(
@@ -214,17 +214,17 @@ class Container(containers.DeclarativeContainer):
         film_rating_repository=film_rating_repository,
     )
 
-    film_rating_processor = providers.Singleton(
-        ratings.FilmRatingProcessor,
-        film_rating_factory=film_rating_factory,
-        film_rating_service=film_rating_service,
-    )
-
     film_rating_dispatcher_service = providers.Factory(
         ratings.FilmRatingDispatcherService,
         film_rating_factory=film_rating_factory,
         producer=kafka_producer,
         config=config,
+    )
+
+    film_rating_processor = providers.Singleton(
+        ratings.FilmRatingProcessor,
+        film_rating_factory=film_rating_factory,
+        film_rating_service=film_rating_service,
     )
 
     film_rating_processor_service = providers.Factory(
@@ -257,14 +257,7 @@ def override_providers(container: Container) -> Container:
     if not container.config.USE_STUBS():
         return container
 
-    container.kafka_producer_client.override(providers.Resource(dummy_resource))
-    container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
-    container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
-    container.kafka_consumer_film_rating_client.override(providers.Resource(dummy_resource))
-    container.kafka_producer.override(sentinel)
-    container.kafka_bookmark_consumer.override(sentinel)
-    container.kafka_progress_consumer.override(sentinel)
-    container.kafka_film_rating_consumer.override(sentinel)
+    _override_with_dummy_resources(container)
 
     progress_processor = providers.Singleton(
         InMemoryProcessor,

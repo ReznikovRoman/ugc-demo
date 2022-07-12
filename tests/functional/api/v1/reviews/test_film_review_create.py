@@ -19,7 +19,7 @@ class TestFilmReviewCreate(AuthClientTest):
         url = f"/api/v1/users/me/reviews/films/{VALID_FILM_ID}"
         data = {"title": "Title 1", "review": "Text"}
 
-        got = await self.client.post(url, json=data, expected_status_code=201)
+        got = await self.client.post(url, json=data)
 
         assert got["id"] is not None
         assert got["title"] == data["title"]
@@ -35,7 +35,7 @@ class TestFilmReviewCreate(AuthClientTest):
         """Если пользователь пытается создать вторую рецензию на тот же фильм, то клиент получит ошибку."""
         url = f"/api/v1/users/me/reviews/films/{VALID_FILM_ID}"
         data = {"title": "Title 1", "review": "Text"}
-        await self.client.post(url, json=data, expected_status_code=201)
+        await self.client.post(url, json=data)
 
         got = await self.client.post(url, json=data, expected_status_code=409)
 
@@ -46,8 +46,8 @@ class TestFilmReviewCreate(AuthClientTest):
         url = f"/api/v1/users/me/reviews/films/{VALID_FILM_ID}"
         data = {"title": "Title 1", "review": "Text"}
 
-        first = await self.client.post(url, json=data, expected_status_code=201)
-        another = await another_auth_client.post(url, json=data, expected_status_code=201)
+        first = await self.client.post(url, json=data)
+        another = await another_auth_client.post(url, json=data)
 
         assert first["id"] != another["id"]
 

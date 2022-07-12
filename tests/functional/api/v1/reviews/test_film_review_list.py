@@ -52,7 +52,7 @@ class TestFilmReviewList(BaseClientTest):
         assert next_page["data"][0]["title"] == self.REVIEW_TITLE
 
     async def test_no_reviews(self):
-        """Если на фильм еще не оставили ни одной рецензии, клиент получит пустой список."""
+        """Если на фильм еще не оставили ни одной рецензии, то клиент получит пустой список."""
         url = f"/api/v1/reviews/films/{VALID_FILM_ID}"
 
         got = await self.client.get(url)

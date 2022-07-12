@@ -22,7 +22,7 @@ class TestFilmRatingCreate(AuthClientTest):
 
         await self.client.post(url, json=data, expected_status_code=202)
 
-    async def test_same_user(self):
+    async def test_rating_from_same_user(self):
         """Один пользователь может оставить только один рейтинг к фильму или изменить его."""
         url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
         data_first = {"rating": 10}
@@ -30,12 +30,13 @@ class TestFilmRatingCreate(AuthClientTest):
         data_last = {"rating": rating_last}
 
         await self.client.post(url, json=data_first, expected_status_code=202)
+        await self.client.post(url, json=data_last, expected_status_code=202)
 
-        got = await self.client.post(url, json=data_last, expected_status_code=202)
+        got = await self.client.get(f"/api/v1/ratings/films/{VALID_FILM_ID}")
 
         assert int(got["rating"]) == rating_last
 
-    async def test_different_users(self, another_auth_client):
+    async def test_rating_from_another_users(self, another_auth_client):
         """Разные пользователи могут добавить свой рейтинг к фильму."""
         url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
         data = {"rating": 7}
@@ -52,7 +53,7 @@ class TestFilmRatingCreate(AuthClientTest):
 
         await self.client.post(url, json=data, expected_status_code=422)
 
-    async def test_wrong_body_rating(self):
+    async def test_wrong_body_rating_out_of_range(self):
         """Если клиент передает `rating` не в диапазоне от 1 до 10, то он получит ошибку."""
         url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
         rating = 11

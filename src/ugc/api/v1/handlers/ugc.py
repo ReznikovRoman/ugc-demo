@@ -13,10 +13,12 @@ from ugc.api.security import get_user_id_from_jwt
 from ugc.api.utils import orjson_response
 from ugc.api.v1 import openapi, serializers
 from ugc.containers import Container
+from ugc.domain.ratings.exceptions import NoFilmRatingError
 
 if TYPE_CHECKING:
     from ugc.domain.bookmarks import BookmarkDispatcherService, BookmarkService
     from ugc.domain.progress import ProgressDispatcherService, ProgressService
+    from ugc.domain.ratings import FilmRatingDispatcherService, FilmRatingService
     from ugc.domain.reviews import ReviewService
 
 
@@ -81,6 +83,37 @@ async def get_film_progress(
     user_id = get_user_id_from_jwt(request.headers)
     progress = await progress_service.get_user_film_progress(user_id=user_id, film_id=film_id)
     return orjson_response(progress, status=HTTPStatus.OK)
+
+
+@docs(**openapi.get_film_rating)
+@inject
+async def get_film_rating(
+    request: web.Request, *,
+    film_rating_service: FilmRatingService = Provide[Container.film_rating_service],
+) -> web.Response:
+    """Получение рейтинга фильма."""
+    film_id: UUID = request.match_info["film_id"]
+    try:
+        film_rating = await film_rating_service.get_film_rating(film_id)
+    except NoFilmRatingError:
+        return orjson_response(status=HTTPStatus.NO_CONTENT)
+    return orjson_response(film_rating, status=HTTPStatus.OK)
+
+
+@docs(**openapi.add_film_rating)
+@request_schema(serializers.FilmRatingCreate)
+@inject
+async def add_film_rating(
+    request: web.Request, *,
+    film_rating_dispatcher: FilmRatingDispatcherService = Provide[Container.film_rating_dispatcher_service],
+) -> web.Response:
+    """Добавление пользовательского рейтинга фильму."""
+    film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
+    validated_data = request["data"]
+    rating = validated_data["rating"]
+    await film_rating_dispatcher.dispatch_film_rating(film_id=film_id, user_id=user_id, rating=rating)
+    return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
 @docs(**openapi.create_film_review)

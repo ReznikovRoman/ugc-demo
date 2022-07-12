@@ -79,7 +79,7 @@ class RedisRepository(Generic[_RM]):
     @staticmethod
     def _extract_model_params(defaults: dict | None, **kwargs) -> dict:
         defaults = defaults or {}
-        params = {k: v for k, v in kwargs.items()}
+        params = {key: value for key, value in kwargs.items()}
         params.update(defaults)
         return params
 

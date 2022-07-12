@@ -44,3 +44,25 @@ ENGINE = Distributed('ugc_cluster', ugc, bookmarks, rand());
 CREATE MATERIALIZED VIEW IF NOT EXISTS ugc.bookmarks_consumer ON CLUSTER 'ugc_cluster' TO ugc.bookmarks_distributed
 AS SELECT user_id, film_id, bookmarked, bookmarked_at
 FROM ugc.bookmarks_queue;
+
+-- Rating
+CREATE TABLE IF NOT EXISTS ugc.rating_queue ON CLUSTER 'ugc_cluster'
+(
+    user_id UUID,
+    film_id UUID,
+    rating Int32
+)
+ENGINE=Kafka('kafka:9092', 'film-rating-topic', 'rating-group-kafka', 'JSONEachRow');
+
+CREATE TABLE IF NOT EXISTS ugc.rating ON CLUSTER 'ugc_cluster'
+AS ugc.rating_queue
+ENGINE = ReplicatedMergeTree('/clickhouse/tables/{cluster}/{shard}/rating', '{replica}_rating')
+ORDER BY (user_id, film_id, rating);
+
+CREATE TABLE IF NOT EXISTS ugc.rating_distributed ON CLUSTER 'ugc_cluster'
+AS ugc.rating
+ENGINE = Distributed('ugc_cluster', ugc, rating, rand());
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS ugc.rating_consumer ON CLUSTER 'ugc_cluster' TO ugc.rating_distributed
+AS SELECT user_id, film_id, rating
+FROM ugc.rating_queue;

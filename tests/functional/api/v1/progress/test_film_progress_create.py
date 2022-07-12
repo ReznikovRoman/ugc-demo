@@ -22,7 +22,7 @@ class TestFilmProgressCreate(AuthClientTest):
 
         await self.client.post(url, json=data, expected_status_code=202)
 
-    async def test_wrong_body_frame_not_inger(self):
+    async def test_wrong_body_frame_not_integer(self):
         """Если клиент передает `viewed_frame` не числом, то он получит ошибку."""
         url = f"/api/v1/users/me/progress/films/{VALID_FILM_ID}"
         frame = "XXX"

@@ -64,6 +64,30 @@ get_film_progress = {
     },
 }
 
+get_film_rating = {
+    "tags": ["ratings"],
+    "summary": "Получить рейтинг фильма.",
+    "responses": {
+        HTTPStatus.OK: {
+            "description": "Рейтинг фильма.",
+            "schema": serializers.FilmRating,
+        },
+        HTTPStatus.NO_CONTENT: {"description": "У фильма нет рейтинга."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}
+
+add_film_rating = {
+    "tags": ["ratings"],
+    "summary": "Поставить оценку фильму.",
+    "security": [{"JWT": []}],
+    "responses": {
+        HTTPStatus.ACCEPTED: {"description": "Рейтинг фильма сохранен."},
+        HTTPStatus.UNAUTHORIZED: {"description": "Пользователь не авторизован."},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {"description": "Ошибка сервера."},
+    },
+}
+
 create_film_review = {
     "tags": ["review"],
     "summary": "Создать пользовательскую рецензию на фильм.",

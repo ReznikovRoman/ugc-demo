@@ -105,6 +105,9 @@ jobs:
           export NUGC_QUEUE_BOOKMARKS_GROUP=bookmarks-group
           export NUGC_QUEUE_BOOKMARKS_CONSUMERS=2
           export NUGC_QUEUE_BOOKMARKS_NAME=bookmarks-topic
+          export NUGC_QUEUE_FILM_RATING_NAME=film-rating-topic
+          export NUGC_QUEUE_FILM_RATING_GROUP=film-rating-group
+          export NUGC_FILM_RATING_CONSUMERS=2
           export NUGC_KAFKA_URL=kafka:9092
           export NUGC_USE_STUBS=1
           export NUGC_CI=1

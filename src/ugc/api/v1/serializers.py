@@ -40,6 +40,20 @@ class FilmProgressDetail(Schema):
     viewed_frame = fields.Integer()
 
 
+class FilmRatingCreate(Schema):
+    """Сериалайзер для создания оценки фильму."""
+
+    rating = fields.Integer(
+        strict=True, required=True, validate=[Range(min=1, max=10, error="Rating must be between 1 and 10")])
+
+
+class FilmRating(Schema):
+    """Сериалайзер средней оценки фильма."""
+
+    film_id = fields.UUID()
+    rating = fields.Float()
+
+
 class FilmReviewCreate(Schema):
     """Сериалайзер для создания рецензии на фильм."""
 

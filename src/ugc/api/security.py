@@ -30,7 +30,7 @@ def get_token_from_header(headers: Mapping[str, Any]) -> str:
 
 @inject
 def get_user_id_from_jwt(headers: Mapping[str, Any], config=Provide[Container.config]) -> UUID:
-    """Получение id пользователя из JWT токена."""
+    """Получение id пользователя из JWT."""
     token = get_token_from_header(headers)
     try:
         payload = jwt.decode(token, config["JWT_AUTH_SECRET_KEY"], algorithms=[config["JWT_AUTH_ALGORITHM"]])

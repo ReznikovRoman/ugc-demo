@@ -1,15 +1,17 @@
 import logging.config
 import sys
 from functools import partial
+from typing import AsyncIterator
 
 import loguru
 import orjson
 from dependency_injector import containers, providers
 
 from ugc.core import logging as ugc_logging
-from ugc.domain import bookmarks, processors, progress, reviews
+from ugc.domain import bookmarks, processors, progress, ratings, reviews
 from ugc.domain.bookmarks.models import FilmBookmark
 from ugc.domain.progress.models import UserFilmProgress
+from ugc.domain.ratings.models import FilmRating
 from ugc.domain.reviews.constants import REVIEWS_COLLECTION_NAME
 from ugc.helpers import sentinel
 from ugc.infrastructure.db import mongo, redis, repositories
@@ -114,6 +116,18 @@ class Container(containers.DeclarativeContainer):
         client=kafka_consumer_bookmark_client,
     )
 
+    kafka_consumer_film_rating_client = providers.Resource(
+        consumers.init_kafka_consumer_client,
+        config=config,
+        topic=config.QUEUE_FILM_RATING_NAME,
+        group_id=config.QUEUE_FILM_RATING_GROUP,
+        **consumer_client_config,
+    )
+    kafka_film_rating_consumer = providers.Singleton(
+        consumers.KafkaConsumer,
+        client=kafka_consumer_film_rating_client,
+    )
+
     # Domain -> Progress
 
     progress_factory = providers.Factory(progress.FilmProgressFactory)
@@ -129,17 +143,17 @@ class Container(containers.DeclarativeContainer):
         progress_repository=progress_repository,
     )
 
-    progress_processor = providers.Singleton(
-        progress.ProgressProcessor,
-        progress_factory=progress_factory,
-        progress_service=progress_service,
-    )
-
     progress_dispatcher_service = providers.Factory(
         progress.ProgressDispatcherService,
         progress_factory=progress_factory,
         producer=kafka_producer,
         config=config,
+    )
+
+    progress_processor = providers.Singleton(
+        progress.ProgressProcessor,
+        progress_factory=progress_factory,
+        progress_service=progress_service,
     )
 
     progress_processor_service = providers.Factory(
@@ -164,12 +178,6 @@ class Container(containers.DeclarativeContainer):
         bookmark_repository=bookmark_repository,
     )
 
-    bookmark_processor = providers.Singleton(
-        bookmarks.BookmarkProcessor,
-        bookmark_factory=bookmark_factory,
-        bookmark_service=bookmark_service,
-    )
-
     bookmark_dispatcher_service = providers.Factory(
         bookmarks.BookmarkDispatcherService,
         bookmark_factory=bookmark_factory,
@@ -177,11 +185,53 @@ class Container(containers.DeclarativeContainer):
         config=config,
     )
 
+    bookmark_processor = providers.Singleton(
+        bookmarks.BookmarkProcessor,
+        bookmark_factory=bookmark_factory,
+        bookmark_service=bookmark_service,
+    )
+
     bookmark_processor_service = providers.Factory(
         processors.ProcessorService,
         consumer=kafka_bookmark_consumer,
         concurrency=config.QUEUE_BOOKMARKS_CONSUMERS,
         message_callback=bookmark_processor,
+    )
+
+    # Domain -> FilmRating
+
+    film_rating_factory = providers.Factory(ratings.FilmRatingFactory)
+
+    film_rating_repository = providers.Singleton(
+        ratings.FilmRatingRepository,
+        redis_client=redis_client,
+        film_rating_factory=film_rating_factory,
+        redis_repository=redis_repository_factory(model=FilmRating),
+    )
+
+    film_rating_service = providers.Singleton(
+        ratings.FilmRatingService,
+        film_rating_repository=film_rating_repository,
+    )
+
+    film_rating_dispatcher_service = providers.Factory(
+        ratings.FilmRatingDispatcherService,
+        film_rating_factory=film_rating_factory,
+        producer=kafka_producer,
+        config=config,
+    )
+
+    film_rating_processor = providers.Singleton(
+        ratings.FilmRatingProcessor,
+        film_rating_factory=film_rating_factory,
+        film_rating_service=film_rating_service,
+    )
+
+    film_rating_processor_service = providers.Factory(
+        processors.ProcessorService,
+        consumer=kafka_film_rating_consumer,
+        concurrency=config.QUEUE_FILM_RATING_CONSUMERS,
+        message_callback=film_rating_processor,
     )
 
     # Domain -> Reviews
@@ -217,22 +267,31 @@ def override_providers(container: Container) -> Container:
         InMemoryProcessor,
         queue=providers.Singleton(InMemoryQueue),
     )
+    film_rating_processor = providers.Singleton(
+        InMemoryProcessor,
+        queue=providers.Singleton(InMemoryQueue),
+    )
     container.progress_dispatcher_service.add_kwargs(producer=progress_processor)
     container.bookmark_dispatcher_service.add_kwargs(producer=bookmark_processor)
+    container.film_rating_dispatcher_service.add_kwargs(producer=film_rating_processor)
     container.progress_processor_service.add_kwargs(consumer=progress_processor)
     container.bookmark_processor_service.add_kwargs(consumer=bookmark_processor)
+    container.film_rating_processor_service.add_kwargs(consumer=film_rating_processor)
 
     return container
 
 
-async def get_processors(container: Container) -> list[processors.ProcessorService]:
-    processor_services = [
-        container.progress_processor_service(),
-        container.bookmark_processor_service(),
+async def get_processors(container: Container) -> AsyncIterator[processors.ProcessorService]:
+    processor_providers = [
+        container.progress_processor_service,
+        container.bookmark_processor_service,
+        container.film_rating_processor_service,
     ]
-    if container.progress_processor_service.is_async_mode_enabled():
-        return [await processor_service for processor_service in processor_services]
-    return processor_services
+    for provider in processor_providers:
+        try:
+            yield await provider()
+        except TypeError:
+            yield provider()
 
 
 async def dummy_resource() -> None:
@@ -245,9 +304,11 @@ def _override_with_dummy_resources(container: Container) -> Container:
     container.kafka_producer_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_progress_client.override(providers.Resource(dummy_resource))
     container.kafka_consumer_bookmark_client.override(providers.Resource(dummy_resource))
+    container.kafka_consumer_film_rating_client.override(providers.Resource(dummy_resource))
     container.kafka_producer.override(sentinel)
     container.kafka_bookmark_consumer.override(sentinel)
     container.kafka_progress_consumer.override(sentinel)
+    container.kafka_film_rating_consumer.override(sentinel)
     return container
 
 

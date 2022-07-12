@@ -14,10 +14,6 @@ class TestFilmRatingCreate(AuthClientTest):
     use_data = True
     location = "json"
 
-    # TODO: 2 теста
-    #  1 Добавление рейтинга разными пользователями
-    #  2 Проверка, что 1 пользователь может оставить только один рейтинг/изменить его -> не создается новая запись в БД
-
     async def test_ok(self):
         """При корректном теле запроса клиент получает ответ об успешном сохранении рейтинга в очередь."""
         url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
@@ -25,6 +21,28 @@ class TestFilmRatingCreate(AuthClientTest):
         data = {"rating": rating}
 
         await self.client.post(url, json=data, expected_status_code=202)
+
+    async def test_same_user(self):
+        """Один пользователь может оставить только один рейтинг к фильму или изменить его."""
+        url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
+        data_first = {"rating": 10}
+        rating_last = 5
+        data_last = {"rating": rating_last}
+
+        await self.client.post(url, json=data_first, expected_status_code=202)
+
+        got = await self.client.post(url, json=data_last, expected_status_code=202)
+
+        assert int(got["rating"]) == rating_last
+
+    async def test_different_users(self, another_auth_client):
+        """Разные пользователи могут добавить свой рейтинг к фильму."""
+        url = f"/api/v1/users/me/ratings/films/{VALID_FILM_ID}"
+        data = {"rating": 7}
+        another_data = {"rating": 5}
+
+        await self.client.post(url, json=data, expected_status_code=202)
+        await another_auth_client.post(url, json=another_data, expected_status_code=202)
 
     async def test_wrong_body_rating_not_integer(self):
         """Если клиент передает `rating` не числом, то он получит ошибку."""

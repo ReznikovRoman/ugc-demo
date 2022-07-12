@@ -30,6 +30,8 @@ def setup_routes_v1(app: web.Application) -> None:
             handler=ugc.get_film_progress,
             allow_head=False,
         ),
+
+        # Film ratings
         web.get(
             path="/ratings/films/{film_id}",
             handler=ugc.get_film_rating,

@@ -109,11 +109,11 @@ async def add_film_rating(
 ) -> web.Response:
     """Добавление пользовательского рейтинга фильму."""
     film_id: UUID = request.match_info["film_id"]
+    user_id = get_user_id_from_jwt(request.headers)
     validated_data = request["data"]
     rating = validated_data["rating"]
-    user_id = get_user_id_from_jwt(request.headers)
-    film_rating = await film_rating_dispatcher.dispatch_film_rating(film_id=film_id, user_id=user_id, rating=rating)
-    return orjson_response(film_rating, status=HTTPStatus.ACCEPTED)
+    await film_rating_dispatcher.dispatch_film_rating(film_id=film_id, user_id=user_id, rating=rating)
+    return orjson_response(status=HTTPStatus.ACCEPTED)
 
 
 @docs(**openapi.create_film_review)

@@ -3,7 +3,7 @@ version: '3.9'
 services:
   server:
     restart: always
-    image: ugc-api-yandex
+    image: ugc-api-codereview
     build:
       context: ../../.
       dockerfile: Dockerfile
@@ -121,7 +121,7 @@ services:
 
   test:
     restart: on-failure
-    image: ugc-api-yandex
+    image: ugc-api-codereview
     env_file:
       - $ENV
     environment:

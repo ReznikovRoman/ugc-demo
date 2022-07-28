@@ -1,26 +1,6 @@
 # Netflix UGC
 Сервис для работы с пользовательским контентом в онлайн-кинотеатре _Netflix_.
 
-## Сервисы
-- Netflix Admin:
-  - Панель администратора для управления онлайн-кинотеатром (редактирование фильмов, жанров, актеров)
-  - https://github.com/ReznikovRoman/netflix-admin
-- Netflix ETL:
-  - ETL пайплайн для синхронизации данных между БД сервиса Netflix Admin и Elasticsearch
-  - https://github.com/ReznikovRoman/netflix-etl
-- Netflix Movies API:
-  - АПИ фильмов
-  - https://github.com/ReznikovRoman/netflix-movies-api
-- Netflix Auth API:
-  - Сервис авторизации - управление пользователями и ролями
-  - https://github.com/ReznikovRoman/netflix-auth-api
-- Netflix UGC:
-  - Сервис для работы с пользовательским контентом
-  - https://github.com/ReznikovRoman/netflix-ugc
-- Netflix Notifications:
-  - Сервис для отправки уведомлений
-  - https://github.com/ReznikovRoman/netflix-notifications
-
 ## Настройка и запуск
 docker-compose содержат контейнеры:
  1. server
@@ -76,7 +56,7 @@ NUGC_REDIS_DEFAULT_CHARSET=utf-8
 NUGC_REDIS_DECODE_RESPONSES=1
 NUGC_REDIS_RETRY_ON_TIMEOUT=1
 # MongoDB
-NUGC_MONGODB_USER=yandex
+NUGC_MONGODB_USER=codereview
 NUGC_MONGODB_PASSWORD=netflix
 NUGC_MONGODB_NAME=netflix_ugc
 NUGC_MONGODB_HOST=mongodb
@@ -170,7 +150,7 @@ NUGC_REDIS_DEFAULT_CHARSET=utf-8
 NUGC_REDIS_DECODE_RESPONSES=1
 NUGC_REDIS_RETRY_ON_TIMEOUT=1
 # MongoDB
-NUGC_MONGODB_USER=yandex
+NUGC_MONGODB_USER=codereview
 NUGC_MONGODB_PASSWORD=netflix
 NUGC_MONGODB_NAME=netflix_ugc
 NUGC_MONGODB_HOST=mongodb
@@ -237,7 +217,7 @@ NAA_DB_HOST=db-auth
 NAA_DB_PORT=5432
 NAA_DB_NAME=netflix_auth
 NAA_DB_USER=test
-NAA_DB_PASSWORD=yandex
+NAA_DB_PASSWORD=codereview
 NAA_DB_DEFAULT_SCHEMA=public
 # Redis
 NAA_REDIS_HOST=redis-auth

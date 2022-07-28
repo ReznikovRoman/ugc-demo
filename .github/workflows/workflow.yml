@@ -48,7 +48,7 @@ jobs:
         image: mongo:5.0
         env:
           MONGO_INITDB_ROOT_USERNAME: test
-          MONGO_INITDB_ROOT_PASSWORD: yandex
+          MONGO_INITDB_ROOT_PASSWORD: codereview
           MONGO_INITDB_DATABASE: ugc_test
         ports:
           - 27017:27017
@@ -93,7 +93,7 @@ jobs:
           export NUGC_REDIS_DECODE_RESPONSES=1
           export NUGC_REDIS_RETRY_ON_TIMEOUT=1
           export NUGC_MONGODB_USER=test
-          export NUGC_MONGODB_PASSWORD=yandex
+          export NUGC_MONGODB_PASSWORD=codereview
           export NUGC_MONGODB_NAME=ugc_test
           export NUGC_MONGODB_HOST=localhost
           export NUGC_MONGODB_PORT=27017
